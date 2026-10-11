@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+DOCKER_DIR=$HOME/Development/docker-dev
+BACKEND_APP=simplepractice
+FRONTEND_APP=simplepractice-frontend
+SSO_APP=sp-sso-account
+
+function macos() {
+  hidutil property --set '{"UserKeyMapping":[
+    {"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0},
+    {"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x7000000E0}
+  ]}'
+}
+
+function spdapp() {
+  cd $DOCKER_DIR
+  git pull
+  sp apps:sync
+  sp stop
+  sp start
+}
+
+function spdrld() {
+  cd $DOCKER_DIR
+  git pull
+  sp apps:sync
+}
+
+function spdaws() {
+  cd $DOCKER_DIR
+  aws sso login --profile staging
+}
+
+function spdssh() {
+  cd $DOCKER_DIR
+  ssh-add $HOME/.ssh/id_ed25519
+}
+
+function spbrspec() {
+  if [ $1 = true ]; then
+    shift
+    docker exec -it -e COVERAGE=true $BACKEND_APP bundle exec rspec "$@"
+  else
+    shift
+    docker exec -it $BACKEND_APP bundle exec rspec "$@"
+  fi
+}
+
+function spbdb() {
+  sp exec mysql -h mysql.local -u root $BACKEND_APP
+}
+
+function spbcop() {
+  sp rubocop -a $BACKEND_APP "$@"
+}
+
+function spboas() {
+  sp exec -a $BACKEND_APP rails 'oas:generate[spec/acceptance/frontend/users_spec.rb,spec/acceptance/frontend/team_members_spec.rb]'
+}
+
+function spfyarn() {
+  if [ $1 = true ]; then
+    shift
+    docker exec -it -e COVERAGE=true $FRONTEND_APP yarn test:browser "$@"
+  else
+    shift
+    docker exec -it $FRONTEND_APP yarn test:browser "$@"
+  fi
+}
+
+function spflint() {
+  local type="$1"
+  shift
+  sp exec -a $FRONTEND_APP yarn lint:"$type" "$@"
+}
+
+function spsrspec() {
+  if [ $1 = true ]; then
+    shift
+    docker exec -it -e COVERAGE=true $SSO_APP bundle exec rspec "$@"
+  else
+    shift
+    docker exec -it $SSO_APP bundle exec rspec "$@"
+  fi
+}
+
+function spsdb() {
+  sp exec mysql -h mysql.local -u root $SSO_APP
+}
+
+function spscop() {
+  sp rubocop -a $SSO_APP "$@"
+}
+

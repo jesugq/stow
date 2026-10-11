@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+messages="$HOME/.script/actioning.txt"
+names="$HOME/.script/teammates.txt"
+reasoning="$HOME/.script/reasoning.txt"
+for file in "$messages" "$names" "$reasoning"; do
+  if [[ ! -f $file ]]; then
+    printf 'afk: %s: No such file or directory\n' "$file" >&2
+    exit 1
+  fi
+  if [[ ! -s $file ]]; then
+    printf 'afk: %s: file is empty\n' "$file" >&2
+    exit 1
+  fi
+done
+
+source "$HOME/.zshtm"
+tmux-rename-create afk
+
+if [[ "${OSTYPE:-}" == darwin* ]]; then
+  arch="$HOME/.binary/drift_darwin"
+else
+  arch="$HOME/.binary/drift_linux"
+fi
+
+scenes=(waveform constellation rain particles pipes orrery starfield dvd boids bonsai)
+themes=(cosmic nord dracula catppuccin gruvbox forest wildberries mono rosepine)
+
+for ((i=${#scenes[@]}-1; i>0; i--)); do
+  j=$((RANDOM % (i+1)))
+  tmp=${scenes[i]}
+  scenes[i]=${scenes[j]}
+  scenes[j]=$tmp
+done
+unset i j tmp
+
+IFS=,
+scene="${scenes[*]}"
+unset IFS
+theme="${themes[RANDOM % ${#themes[@]}]}"
+
+thinkings=(
+  "$HOME/.script/thinking_antigravity.py"
+  "$HOME/.script/thinking_claude.py"
+  "$HOME/.script/thinking_codex.py"
+  "$HOME/.script/thinking_copilot.py"
+  "$HOME/.script/thinking_cursor.py"
+  "$HOME/.script/thinking_opencode.py"
+  "$HOME/.script/thinking_qwen.py"
+)
+thinking="${thinkings[RANDOM % ${#thinkings[@]}]}"
+sides=(left right)
+side="${sides[RANDOM % ${#sides[@]}]}"
+focuses=(main side)
+focus="${focuses[RANDOM % ${#focuses[@]}]}"
+
+pane-tmux-side "$side" "$focus" "$thinking" "$messages" "$names" "$reasoning"
+pane-tmux-main "$arch" --scene "$scene" --theme "$theme" --duration 10

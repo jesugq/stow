@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ -f "$HOME/.local/state/syncthing/config.xml" ]; then
+    CONF="$HOME/.local/state/syncthing/config.xml"
+elif [ -f "$HOME/.config/syncthing/config.xml" ]; then
+    CONF="$HOME/.config/syncthing/config.xml"
+else
+    exit 1
+fi
+
+API_KEY=$(sed -n 's/.*<apikey>\(.*\)<\/apikey>.*/\1/p' "$CONF" | head -n 1)
+curl -s -X POST -H "X-API-Key: $API_KEY" http://127.0.0.1:8384/rest/db/scan

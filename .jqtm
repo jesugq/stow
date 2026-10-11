@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+function tm() {
+  local session="${1:-jesugq}"
+  cd $HOME
+  clear
+  tmux new-session -s "$session" 2>/dev/null || tmux attach-session -t "$session"
+}
+
+function tmls() {
+  cd $HOME
+  tmux ls
+}
+
+function tmrm() {
+  cd $HOME
+  tmux kill-session -t "$1"
+}
+
+function pane-tmux-main() {
+  "$@"
+}
+
+function pane-tmux-side() {
+  local command side focus flags target
+  [[ $# -gt 2 ]] || return 2
+  side=$1
+  focus=$2
+  shift 2
+  case $side in
+    left) flags=(-h -b -l 33% -P -F '#{pane_id}') ;;
+    right) flags=(-h -l 33% -P -F '#{pane_id}') ;;
+    *) return 2 ;;
+  esac
+  case $focus in
+    main|side) ;;
+    *) return 2 ;;
+  esac
+  PANE_TMUX_MAIN_PANE=$(tmux display-message -p '#{pane_id}') || return
+  printf -v command '%q ' "$@"
+  command=${command% }
+  PANE_TMUX_SIDE_PANE=$(tmux split-window "${flags[@]}" "$command") || return
+  if [[ $focus == main ]]; then
+    target=$PANE_TMUX_MAIN_PANE
+  else
+    target=$PANE_TMUX_SIDE_PANE
+  fi
+  tmux select-pane -t "$target"
+}

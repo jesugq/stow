@@ -1,0 +1,27 @@
+# theme
+theme = Ryuuko
+
+# font
+font-family = "Maple Mono NF"
+font-size = 20.0
+
+# window
+window-padding-balance = true
+window-padding-x = 0
+window-padding-y = 0
+
+# linux support
+keybind = ctrl+enter=csi:13;5u
+keybind = super+enter=csi:13;9u
+
+# macos support
+# cmd+shift+[ -> alt+{
+# cmd+shift+] -> alt+}
+keybind = super+shift+left_bracket=csi:123;3u
+keybind = super+shift+right_bracket=csi:125;3u
+keybind = super+h=csi:104;9u
+keybind = alt+enter=csi:13;3u
+
+# globe support
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = ctrl+shift+v=paste_from_clipboard

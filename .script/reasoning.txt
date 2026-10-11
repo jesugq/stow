@@ -1,0 +1,633 @@
+I start from a sign-in that dies after confirmation_token is accepted, and my first guess is that two_step_enabled is simply false on the account identity row, so I follow the service object #call into multi-factor authentication expecting a missing email_backup_enabled branch, but the temporary_sign_ins_used counter has already incremented, which means the gate ran and then something after it dropped the session.
+
+That forces me off the happy path and into sign-in trust, because if Cognito already issued cognito_username and the WebAuthn passkey challenge returned, the only remaining way for current_sign_in_at to stay null is a Sift or reCAPTCHA decision that never writes last_sign_in_ip.
+
+I remember {{TEAMMATE}} mentioning, on a Teams call with a Bugsnag grouping still open and a Pry session in the other window, that failed_attempts was being cleared by a Sidekiq retry before locked_at could stick, and once I replay that against unlock_token I can see Devise resetting password_changed_at even when verification_mechanism is still phone_number, so the lock never becomes the thing the user actually hits.
+
+The harder part is that the same user then lands in the EHR with a valid account_uuid and a blank practice_id, which should be impossible if PopulatesPracticeId ran, so I leave SSO and open practice setup to see whether onboarding wrote selected_plan_id before the invitation_accepted_at timestamp.
+
+Query objects for team members return a row whose roles are empty and whose supervisor_id points at a user with is_deleted set, and that would explain a Pundit policy denying the next request, except the denial is not a 403 but a JSON:API resource that serializes this_type as Client while the form object posted type as an availability.
+
+That mismatch is what the fix has to pin down before any policy tweak, because an empty roles array and a this_type of Client are two different writes, so the next file is simplepractice/app/models/concerns/user_roles.rb with @simplepractice/dba on the schema side, and I only keep going into the calendar once that owner is named.
+
+A Figma comment {{TEAMMATE}} left on the calendar frame, next to a sticky about IceCube recurrence, says single-table inheritance on verification codes was leaking into appointments through a shared presenter, and if I take that seriously I have to stop treating the calendar as innocent and inspect start_time against end_time on a recurring appointment whose duration is zero and whose office_id belongs to a practice with telehealth_enabled false.
+
+Read/write splitting makes this worse, because on_reader still shows the old monarch_listing_enabled value while on_writer has already flipped client_portal_enabled, so the client portal self-scheduling page and the calendar offer disagree about whether date_first_visit should exist.
+
+I switch the connection to reading_reports thinking Analytics Pro exports would match clinician snapshots, and they do not, because the deep dive is grouping by hashed_id while the frontend JSON:API controller is filtering on uuid, and the legacy mobile API is still sending user_id as if it were client_id.
+
+{{TEAMMATE}} had already written, in the Notion decision log for the attr_encrypted rollout, that ActiveModel serializers were dropping middle_name and suffix whenever birth_date was encrypted, which would be a field-encryption problem rather than a report problem, so I trace encrypted_birth_date and encrypted_security_answer through the client chart and find the couple contact relationship carrying security_question_id, a column that only belongs on users.
+
+That mismatch is no longer a display bug: the chart's composite primary key is practice_id plus id, but the incoming payload only has id, so the concern that aliases id_value never runs and the next clinical note attaches to the wrong assessment.
+
+Diagnosis and treatment plans then fail open, because the draft AI treatment plan job reads taxonomy_code and npi_number from the clinician and writes them onto the note as if they were diagnosis codes, and the notechecker accepts the note since status is active and updated_at moved.
+
+The treatment-plan failure matters to the fix because taxonomy_code and npi_number are being treated as clinical content, so the correction belongs in simplepractice/app/models/concerns/taxonomy_code.rb rather than in the notechecker, and SimplePractice cannot ship a prompt change until that file stops feeding the note.
+
+I had assumed AI clinical tools were downstream of documentation, yet the intake summary is what created the questionnaire document request, so I have to go look at Sidekiq jobs for the notetaker before I can trust anything in the progress note.
+
+The Linear issue {{TEAMMATE}} opened during triage, after a Prometheus scrape showed a job spike, claims an observer was enqueueing a session summary whenever created_at equaled updated_at, and following that job lands me in secure messaging, where messaging_enabled is true on the practice and false on messaging_with_clients_enabled for the clinician, and the Action Cable channel still broadcasts the document reminder.
+
+The message body includes a payment link, which means billing and messaging are coupled through a mailer I have not opened, and the mailer renders autopay and fee from the appointment while co_pay and billing_type come from the client, so a zero fee can still produce a Stripe charge if the presenter prefers the client.
+
+Payments look locally consistent until I notice trial_ends_on is in the past while group_size still grants the add-on, and the Chargebee enterprise path in subscriptions is recording coverage usage against a plan the practice never selected.
+
+I still have the Jira comment where {{TEAMMATE}} argued the promo upsert and the taxonomy upsert were the same Rails service, and checking that claim shows insurance claims being edited by a service whose name belongs to credentialing, with clearinghouse payer ids written into Medallion organization fields.
+
+The shared upsert is essential to the fix because promo codes and payer ids are landing in the same Medallion fields, so the next file is simplepractice/app/models/concerns/credentialing_features.rb and the change has to split those writes before eligibility is even opened.
+
+Eligibility and benefits is the next fracture: Availity returns a coverage report, Eligible returns a different one, Sohar is flagged off, and Stedi is the one the claim assistant actually submits, so fallback_value on the LaunchDarkly flag is false while feature_state evaluated for a user with no practice is the anonymous path, which ignores the practice flag entirely.
+
+I cannot close the claim until I know which flag_name won, and FetchAnonymousFlagStateService only explains the signed-out case, not this signed-in clinician whose previous_email still matches unconfirmed_email.
+
+{{TEAMMATE}}'s Confluence runbook for the Cognito cutover says CONFIG__COGNITO__USER_POOL_ID in one environment was paired with CONFIG__AUTH_TOKEN_DOMAIN from another, and CONFIG__DEFAULT_HOSTNAME then minted a saml_idp assertion for the learning-site service provider instead of the EHR.
+
+The SAML identity provider logs show the assertion contains invitation_token rather than confirmation_token, and the service provider callback treats that as a fresh invite, which re-enters practice setup and overwrites url_name even though url names are supposed to lock after onboarding.
+
+The assertion contents matter to the fix because invitation_token and confirmation_token taking the same callback will keep rewriting url_name, so the next file is sp-sso-account/app/controllers/saml_idp_controller.rb, owned in practice by whoever reviews SSO, and SimplePractice's EHR callback should reject an invite token after confirmed_at is set.
+
+At that point the original sign-in failure is four systems deep, and the next contradiction is in telehealth: group telehealth starts because telehealth_enabled is true, but client location never resolves since time_zone on the practice and time_zone on the client differ, and the video visit stores office_id from a soft-disabled room whose disabled_at is set while is_disabled on the user is not.
+
+In Discord, after Semaphore went red on an ActiveAdmin spec, {{TEAMMATE}} pasted that audited records and RecordAuditService were writing canceled_at onto practices whenever a user hit is_deleted, so I pull the audit trail and find billing documents, superbills, and invoices all sharing one audit row keyed only by name.
+
+ActiveAdmin in sa_adm shows the invoice, mb_adm shows the claim, and neither shows the credit, because the uploaders to S3 stored the superbills under an ACL that the frontend cannot sign, and the importmap page on the account app is the only place the file hash appears.
+
+VCR cassettes from the last spec run still stub Stripe and Plivo as success, which is why the test stayed green while the webhook job marked the charge failed and then the retry wrapper marked it paid.
+
+A GitHub review {{TEAMMATE}} left on the Svix webhook controller asked whether inbound Iterable payloads and outbound Plivo callbacks shared a form object, and the shared form writes phone_number over global_outgoing_phone_id when the payload has both.
+
+I confirm that by reading the job arguments, and it implies every SMS 2FA code sent today may have been attributed to the wrong outgoing phone, which finally ties the first locked_at mystery to a side effect in messaging rather than to failed_attempts.
+
+The job arguments are the clue the fix has to freeze, because a wrong global_outgoing_phone_id explains the 2FA mis-send without blaming failed_attempts, so the next file is sp-sso-account/app/controllers/concerns/mfa_flows.rb and I do not touch messaging copy until that mapping is explicit.
+
+The difficulty jumps again when I try to reproduce it, because Mirage in the Ember frontend fabricates a client with is_minor true and autopay true, while the real composite-key client has is_minor false and a billing_type that the factory never set, so the UI path cannot hit the bug the job hits.
+
+Segment and Mixpanel tracking jobs then fire for a sign-in that the database does not contain, using sign_in_count from the replica, and the reports reader has not caught up to the writer, which means any deep dive I trust right now is describing a practice that has already changed trial_ends_on.
+
+{{TEAMMATE}} dropped a note on the Mixpanel board for clinician edits that backfill and one-off services were still scheduled next to domain services and that one of them rewrites clinician_id on historical appointments whenever npi_number changes.
+
+If that backfill is live, then calendar and appointments, insurance claims, and credentialing provider profiles are all drifting from the same job, and the Verifiable uuid on the clinician no longer matches the account_uuid the SAML assertion used at the start.
+
+I stop treating any single project as the site of the bug and instead assume the tenancy key is wrong everywhere it is copied, then I check clients, users, and practices for a shared hashed_id that should never have been copied off the client.
+
+The copied tenancy key is why a local patch will not hold, so the fix starts in simplepractice/app/models/concerns/populates_practice_id.rb, where a blank practice_id must not be filled from the ambient user, and @simplepractice/dba needs to see that before hashed_id is cleaned.
+
+It is on the user, copied into previous_email's neighboring audit metadata, and also sitting in a coverage report request that eligibility will resubmit tonight.
+
+I remember {{TEAMMATE}} mentioning, over a Figma prototype of the rqrcode setup screen, that entity objects for 2FA deadlines were constructed with invitation_limit as if it were a timestamp, and that would push temporary sign-in outcomes past the mandatory 2FA gate without ever touching two_step_method.
+
+I can reproduce that only when email_backup_enabled is true and security_question_id is null, which is a state practice setup allows and account identity does not, so the bug exists in the gap between the two user tables rather than in either table alone.
+
+The next investigation has to be the invitation columns side by side, invitation_created_at against invitation_sent_at against confirmation_sent_at, because a clock skew there would let a service provider accept an assertion for a user whose confirmed_at is still null.
+
+Those three invitation timestamps are the fix's acceptance test, because a service provider must not honor an assertion when confirmed_at is null, so the next file is sp-sso-account/app/controllers/concerns/authenticatable.rb and the comparison has to be added there before another webhook is trusted.
+
+That is as far as the current evidence reaches, and the open question is whether the next webhook, the next report export, or the next passkey challenge will copy the bad key again before the writer and the reader agree on who this user is.
+
+I take the report export first, because reading_reports already disagreed with the writer, and the query object behind clinician snapshots groups by uuid while the practice it joins is keyed only by practice_id, so a copied hashed_id would show up there before any webhook runs.
+
+The export file is not empty, yet every row's clinician_id matches the user whose npi_number the backfill rewrote, and the deep dive's status column says active for appointments whose end_time is before start_time, which means Analytics Pro is describing a calendar the writer no longer has.
+
+A Datadog notebook {{TEAMMATE}} linked from Notion, with a dogstatsd timer still graphed beside it, shows presenters for the export formatting duration with the client's time_zone and the practice's time_zone in the same cell, and once I render one row I can see date_first_visit shifted by a day whenever office_id points at a telehealth room.
+
+That shift is enough to move a session across trial_ends_on, so subscriptions thinks the add-on was used during the trial while billing thinks the fee belongs on an invoice after the trial, and both can be true only if created_at and updated_at were written on different connections.
+
+I force the next read onto the writer and the invoice disappears, which tells me the billing document was never committed, only observed, so I open the observer list to see who touches invoices when an appointment's this_type changes.
+
+A billing document that only exists on the reader is not safe to 'repair' in place, so the fix is to stop the observer from enqueueing on a this_type change, and the next file is simplepractice/app/models/concerns/billing_document.rb, which is why the cookie question can wait one more read.
+
+The observer does not save the invoice; it enqueues a Sidekiq job that calls a service object whose arguments are co_pay, autopay, and billing_type, and the job's retry wrapper swallows a validation error when fee is zero, leaving the appointment looking billed.
+
+While pairing in Teams, {{TEAMMATE}} opened letter_opener and pointed at a SendGrid preview whose payment link used the couple's client_id rather than the chart's composite primary key, so the charge would land on the contact.
+
+Payments then records a Stripe webhook for a customer that has previous_email where the EHR user has email, because account identity and the practice user diverged at confirmation_sent_at and nobody copied confirmed_at across.
+
+I compare password_changed_at on both tables and only the SSO row moved, which implies reset_password_token was consumed by importmap and Sprockets on the account app while the Ember frontend still held the old session cookie scoped to CONFIG__AUTH_TOKEN_DOMAIN.
+
+If the cookie domain is wider than CONFIG__DEFAULT_HOSTNAME, the next JSON:API request from the calendar will authenticate as the invited user and authorize as the owner, and Pundit will allow it because roles on the stale session still include the owner role.
+
+The wide cookie domain is essential to the fix because the calendar request is authorized as the owner from a stale roles payload, so the next file is sp-sso-account/app/controllers/concerns/cognito_auth_cookies.rb and SimplePractice should scope that cookie to CONFIG__DEFAULT_HOSTNAME before Pundit is blamed.
+
+{{TEAMMATE}} called this out in a GitHub review of the jsonapi-resources adapter: invited_by_type was being serialized as a practice name instead of a class name, and the frontend JSON:API controller then casts that string into invited_by_id, which is how a url_name ended up stored as a foreign key.
+
+The row that foreign key hits is a soft-disabled practice, disabled_at set, is_disabled false on its only user, and monarch_listing_enabled still true, so the public booking page keeps offering slots for an office_id the client portal has already turned off.
+
+Client portal settings say client_portal_enabled is false, yet the prescreener form object still accepts a submission and creates a prospective client with is_minor unset and birth_date copied from the clinician's encrypted_birth_date by mistake.
+
+That copy is the worst turn so far, because field encryption on the client chart uses a different key than ActiveRecord encryption on the account user, so the stored encrypted_security_answer decrypts to a date and the date field decrypts to a security answer.
+
+The two encryption keys are why the chart cannot be corrected by re-saving the row, so the fix has to stop the alias at the concern boundary, and the next file is simplepractice/app/models/concerns/personal_data.rb rather than a serializer whitelist alone.
+
+The Notion ADR {{TEAMMATE}} wrote for the Devise upgrade, the one Husky now runs Brakeman against, records that a concern shared by both models aliased birth_date onto security_question_id, and the alias survives in the legacy mobile API even though the Ember app never sends it.
+
+I hit that legacy endpoint with the same payload the portal used and the response's ActiveModel serializer includes middle_name, suffix, and first_name from the clinician while last_name comes from the new client, which is a tenancy failure wearing a serializer's clothes.
+
+Practice tenancy should have rejected a create whose practice_id did not match the token's practice, but PopulatesPracticeId fills a blank practice_id from the current user, and the current user is the one with the stale owner session, so the fill succeeds.
+
+The new client's hashed_id collides with the user hashed_id I found earlier, and now three tables share it: users, clients, and the coverage report request queued for tonight.
+
+Eligibility will submit that request to Availity with a subscriber name built from those mixed fields, and Eligible will reject it while Sohar, still flagged off, never sees it, so only the failure path in Stedi remains.
+
+{{TEAMMATE}} had pinned a LaunchDarkly screenshot in Discord saying fallback_value for the benefits flag was cached for twelve hours under the anonymous context, and feature_state for the signed-in clinician therefore never overrode flag_name even after the flag changed.
+
+The twelve-hour anonymous cache is the clue that makes a LaunchDarkly toggle insufficient, so the fix belongs in simplepractice/app/services/fetch_anonymous_flag_state_service.rb, and SimplePractice needs a practice-scoped feature_state there before anyone clears a single cache key.
+
+I dump the flag cache key and it is built from account_uuid plus a missing practice_id, which is the same blank that started this trace, so the cache has been serving the signed-out decision to a signed-in chart the entire time.
+
+Clearing that one key is not enough, because Sidekiq jobs evaluate flags with FetchAnonymousFlagStateService when the job payload omitted user_id, and the notetaker job is one of those payloads.
+
+The notetaker then writes a draft progress note whose diagnosis codes are the taxonomy_code it found on the clinician, and the notechecker marks the note complete because status flipped and updated_at moved, exactly the false acceptance I saw in treatment plans.
+
+AI clinical tools are no longer a side system: they are persisting the contaminated identity into clinical notes, and the intake summary job reads those notes back as source material for the next session.
+
+A Linear comment from {{TEAMMATE}} on the messaging epic, filed next to a Turbo frame bug and a Bedrock trace of the Transcribe job that FFmpeg had just chopped into chunks, says an Action Cable broadcast on note completion was also pushing the note body into secure messaging for any practice with messaging_enabled, regardless of messaging_with_clients_enabled.
+
+The broadcast is essential to the fix because a note can leave the chart even when messaging_with_clients_enabled is false, so the next file is simplepractice/app/models/concerns/practice_messaging_permissions.rb and the channel must read that concern instead of messaging_enabled alone.
+
+I watch the channel and the broadcast includes the mixed first_name and the payment link from the earlier mailer, so a client can receive another client's encrypted birth date rendered as plain text if the presenter decrypts before it authorizes.
+
+Authorization on the channel checks clinician_id and not the composite key, which means a note attached to the wrong assessment is still delivered to the right clinician, and that clinician's trust hides the mix-up.
+
+I need a place the mix-up cannot hide, so I open credentialing, where provider profiles are supposed to be keyed by a Verifiable uuid that must equal account_uuid, and here the profile's uuid equals the collided hashed_id instead.
+
+Medallion organization ids on that profile were written by the upsert service that {{TEAMMATE}} already tied to promo codes, and the same upsert has now stored taxonomy_code into a payer enrollment field that insurance claims read as the billing NPI.
+
+The swapped NPI and payer id matter to the fix because claim validation only checks non-blank, so the next file is simplepractice/app/models/concerns/npi_number_rules.rb, and credentialing's upsert must stop writing taxonomy_code into the enrollment field before another claim is built.
+
+A claim built from that enrollment will carry npi_number in the payer slot and the payer id in the clinician slot, and the claim assistant's internal validation only checks that both are non-blank, so it will submit.
+
+I remember {{TEAMMATE}} mentioning, in a Jira bug about Stripe amounts that also broke a Prawn receipt, that claim edit rules compare fee to co_pay using integers while the columns are decimals, and a zero-versus-blank distinction then bypasses the scrub that would have caught the swapped identifiers.
+
+I reproduce the edit on a single appointment whose duration is zero and whose billing_type says insurance, and the edit rewrites office_id to the telehealth room with disabled_at set, which drags the calendar back into a bug I thought belonged only to claims.
+
+Group telehealth uses that room because telehealth_enabled is true at the practice and the appointment's this_type is the group subclass, so single-table inheritance selects the group path and never checks the room's soft disable.
+
+The video visit starts, client location resolves to the practice time_zone rather than the client's, and the recorded start_time is therefore an hour off the clinical note's start_time, splitting one session into two identities.
+
+{{TEAMMATE}}'s Confluence incident note, filed next to a CloudWatch screenshot of the Logstash pipeline, says audit recording stored both start times on one audited row keyed by name, and RecordAuditService then copied canceled_at from the appointment onto the practice when the names matched.
+
+The shared audit row is why sa_adm and the practice record disagree, so the fix is to key audits by practice_id rather than name, and the next file is simplepractice/app/models/concerns/audit_action.rb with @simplepractice/dba reviewing the index change.
+
+The practice name and the client nickname are the same string in this fixture, which is why the audit row I saw earlier joined invoices, superbills, and claims under a single name key with no practice_id.
+
+ActiveAdmin in sa_adm filters that audit by name and shows a credit that mb_adm cannot see, because mb_adm scopes by practice_id and the credit's practice_id was filled by the stale owner session, not by the practice that owns the claim.
+
+The credit's amount equals fee plus co_pay, a sum no service object intends, and it was created by the retry wrapper replaying a Stripe webhook that VCR had stubbed as success in the spec and as failure in production.
+
+Semaphore's RSpec shard went green because WebMock, as {{TEAMMATE}} wrote on the GitHub check, stubbed only the first Plivo call, and neither the Capybara scenario nor the Selenium driver ever rendered the retry, so that retry hit the real global_outgoing_phone_id mapping and sent the 2FA code to phone_number from the contaminated client.
+
+That sends me back to multi-factor authentication with a worse premise: the code the user must enter was generated for a chart contact, stored on verification codes via single-table inheritance with type set to a client class, and the mandatory gate still increments temporary_sign_ins_used on the clinician.
+
+The verification-code type is essential to the fix because a client class on that STI row lets the gate increment the wrong counter, so the next file is sp-sso-account/app/controllers/concerns/multi_factorable.rb and SimplePractice's 2FA check has to require two_step_method to match the account row, not the chart.
+
+The gate compares two_step_method to verification_mechanism, finds them both equal to phone_number, and lets the session through even though email_backup_enabled is the only factor the account row actually has.
+
+Sign-in trust then scores the event with Sift using current_sign_in_ip from the replica and last_sign_in_ip from the writer, two different addresses, and reCAPTCHA is skipped because the anonymous flag cache says the skip flag is on.
+
+Cognito still has the original cognito_username, but the password it accepts is the one set when reset_password_sent_at fired against CONFIG__COGNITO__USER_POOL_ID for the wrong environment, so the user is real in one pool and a ghost in the other.
+
+In a Teams war-room {{TEAMMATE}} shared a saml_idp log, set beside the OmniAuth callback that never ran, where the identity provider signs assertions with whichever Cognito pool answered first, and the learning-site service provider has been creating invitations for the ghost while the EHR accepts the real user.
+
+Whichever pool answers first is the bug the fix has to close in one place, so the next file is sp-sso-account/app/controllers/saml_idp_controller.rb, and the worker must read a single CONFIG__COGNITO__USER_POOL_ID instead of racing OmniAuth against saml_idp.
+
+I now have two invitation_token values for one email, and invitation_created_at on the ghost is earlier than confirmation_sent_at on the real user, which is the clock skew I was about to measure, except the skew is across pools rather than across columns.
+
+The ghost pool still answers password checks, so I stop comparing columns on one row and start comparing the two user tables as if they were replicas of each other that never shared a writer.
+
+Account identity has confirmation_token, unlock_token, and failed_attempts; the EHR user has the same email with sign_in_count already above zero and locked_at null, which means the lock I blamed on the retry wrapper never existed on the row the EHR session actually reads.
+
+{{TEAMMATE}} sketched this on a Notion diagram of MySQL Aurora replicas: on_reader in the EHR was pinned to a replica that still had the pre-invitation user, while on_writer in SSO had already swapped cognito_username, so every successful gate was a join across time.
+
+If that join is the bug, then practice setup's invitation_accepted_at can be in the future relative to invitation_sent_at without either clock being wrong, because the timestamps come from different pools.
+
+I sort both clocks and the future timestamp belongs to invited_by_id, which points at a user whose is_deleted is true and whose supervisor_id points back at the invitee, a cycle the team-member query object does not detect because it filters on roles being non-empty and this user's roles are empty.
+
+The invite cycle matters to the fix because an empty roles array still passes a presence check, so the next file is simplepractice/app/models/concerns/user_roles.rb and invited_by_id must be rejected when is_deleted is set, before group_size is allowed to change.
+
+An empty roles array still passes the Pundit policy that checks key presence rather than contents, so the cycle is authorized to edit practice settings, including selected_plan_id and group_size.
+
+Changing group_size during an active trial rewrites trial_ends_on through a subscriptions service that also enables the insurance add-on, and that enablement is what queued the coverage report I was afraid would resubmit tonight.
+
+A Figma flow {{TEAMMATE}} annotated for the billing settings page, the one that also calls out the Doorkeeper token step, assumed Chargebee and Stripe ran in one service object without a transaction, and a failure in the second call leaves selected_plan_id on Chargebee and the old plan on the practice.
+
+I can see both ids, and the practice row's name was updated by the audit concern to the Chargebee plan's nickname, which is why the audit row keyed only by name now matches a billing document that belongs to a different practice with the same nickname.
+
+Soft disable does not save us, because disabled_at on the other practice is null and is_disabled is false, and monarch_listing_enabled is true, so the public page for url_name serves the contaminated plan's clinicians.
+
+The public listing staying on is why url_name cannot be corrected only in onboarding, so the fix also touches simplepractice/app/models/concerns/practice_monarch.rb, where monarch_listing_enabled has to follow disabled_at, and that is the file I want reviewed before the NPI form is reopened.
+
+Those clinicians' npi_number values were upserted from taxonomy_code by the same backfill that rewrote historical clinician_id, so the listing, the claim, and the credentialing profile agree with each other and disagree with the NPI registry the form object used at signup.
+
+The form object still has the original npi_number in a param that never persisted, sitting in a Sidekiq retry set beside a mailer for the invitation, and if that job runs it will invite the ghost pool address again.
+
+{{TEAMMATE}} said it in a Discord thread under a Redis monitor screenshot: the retry set is shared between SSO and the EHR because CONFIG__DB__HOST was never the isolation boundary people assumed, only the Redis database index was, and the index collided.
+
+I was not looking at Redis, but the collision explains why a tracking job and a cleanup job acknowledge the same payload: Segment records a sign-in while the cleanup deletes the reset_password_token that would have proved which pool issued it.
+
+The shared Redis index is essential to the fix because Segment and the cleanup job are acknowledging one payload, so the next file is sp-sso-account/config/sidekiq.yml together with the EHR sidekiq config, and @simplepractice/infrastructure owns the database index split.
+
+Mixpanel receives sign_in_count, current_sign_in_at, and current_sign_in_ip from the payload rather than from the database, so the product analytics now confirm a login the writer has already rolled back.
+
+Rolling the analytics forward is not possible from here, and the Ember frontend has already rendered the Mixpanel-shaped user into Mirage's test state that developers replay locally, which means the bug is reproducible in tests for the wrong reason.
+
+The QUnit failure {{TEAMMATE}} pasted into Linear shows Mirage factories, which FactoryBot mirrors on the Rails side, setting is_minor, autopay, and billing_type from a single trait named after this_type, so a Client trait and an availability trait can emit the same hashed_id.
+
+That factory collision is local, yet the production hashed_id collision has the same shape, which makes me wonder whether a seed task used the factory and wrote it through the primary.
+
+Seeds are not supposed to run in production, but a one-off service lives next to seeds and calls the same builder, and its last run timestamp is updated_at on a row whose created_at is years older.
+
+The builder writes clients with a composite primary key and also writes a legacy id-only row for the mobile API, and those two rows diverge on middle_name and suffix the moment anyone edits the chart in Ember.
+
+Two client rows for one id are why Ember and the legacy API cannot be fixed independently, so the next file is simplepractice/app/models/concerns/composite_primary_key_nested_attributes.rb, and SimplePractice's mobile writer has to stop updating the id-only copy.
+
+Frontend JSON:API updates the composite row; the legacy mobile API updates the id-only row; serializers then pick whichever connection answers first.
+
+I remember {{TEAMMATE}} mentioning, while ember-exam was still red on their Semaphore pipeline and Webpack had not finished the Embroider rebuild, that read/write splitting prefers reading for GET and writing for PATCH, so a mobile client that patches and immediately gets can observe the stale composite row and decide the patch failed.
+
+The user retries, the legacy row gains a second suffix, and the clinical note saved in between attaches to whichever client_id the controller read, which is how the assessment I flagged earlier gained a second author.
+
+Diagnosis and treatment plans read both authors and merge taxonomy_code from each into the diagnosis list, and the draft AI treatment plan treats the merged list as clinician instructions.
+
+The notechecker cannot see the merge because it receives the presenter output, not the query object output, and the presenter drops duplicate strings after the damage is stored.
+
+The presenter dropping duplicates is why the stored note can still be wrong after the screen looks clean, so the fix has to compare query output with presenter output, and the next file is simplepractice/app/models/concerns/note_audited.rb before any notechecker change.
+
+I stop trusting presenters as evidence and read the note table directly, and the stored body contains phone_number and email from the ghost user above a questionnaire that the client portal generated for the real client.
+
+{{TEAMMATE}}'s GitHub review on the CarrierWave uploader, the one MiniMagick resizes before S3 and PDFtk stamps after Textract reads the card, warned that document requests copy the requester's unconfirmed_email into the PDF when confirmed_at is null, and the uploader then puts that PDF in the bucket configured for logos rather than documents.
+
+The ACL on that bucket is public, unlike the superbills bucket I could not sign, so the contaminated PDF is reachable without a session while the legitimate invoice is not.
+
+Importmap on the account app links the public file from the security page because the helper only checks that a url_name is present, and Sprockets fingerprints the link as if it were a stylesheet.
+
+A security page that only checks url_name is how the wrong file gets linked, so the fix is in the account helper that builds that link, next to sp-sso-account/app/controllers/concerns/security_question_update.rb, and the bucket choice has to be a constant rather than a practice attribute.
+
+A security page that serves another person's questionnaire is a different severity than a wrong invoice, and it means the original sign-in bug has become a data leak across practices.
+
+I look for every uploader that chooses a bucket from a practice attribute rather than a constant, and the second hit is the profile image uploader, which stored profile_image_name equal to the collided hashed_id.
+
+A Percy snapshot {{TEAMMATE}} commented on in Figma shows the learning-site header pulling profile images through the SAML service provider, so the ghost invitation and the real user now share a face as well as an email.
+
+WebAuthn passkey registration stores a credential against cognito_username, and the challenge returned this morning was for the ghost username, which is why the passkey succeeded in SSO and the EHR session still had a null current_sign_in_at.
+
+The mandatory 2FA gate saw a successful passkey and skipped two_step_method entirely, incrementing temporary_sign_ins_used only on the ghost row, so the real row's counter stayed at zero and never tripped the soft lock.
+
+Entity objects for the 2FA deadline compute the deadline from invitation_limit on whichever row the controller loaded last, and the controller loads the ghost because CONFIG__COGNITO__USER_POOL_ID in this process points at the ghost pool.
+
+The deadline using the last loaded row is the clue the fix must encode, so the next file is sp-sso-account/app/entities/two_fa_deadline.rb and it should read invitation_limit only from the account user, which is why the passkey counter split matters before env is blamed.
+
+{{TEAMMATE}} left a Datadog process list in the Confluence on-call page, next to the Puma worker count Bootsnap was supposed to make cheap, showing those workers do not share a refreshed env, so one worker signs assertions for the EHR pool while the next worker still has the learning-site fingerprint.
+
+Two workers are enough to make the service provider callback alternate between invitation_token and confirmation_token on successive requests from the same browser.
+
+I can finally reproduce the original dropped session: the first worker sets the cookie, the second worker does not recognize it, Devise-style authentication fails closed, and the user appears signed out with failed_attempts untouched because the failure happened before the lockable callback.
+
+That reproduction is real and still incomplete, because the cookie the first worker set uses a domain from CONFIG__AUTH_TOKEN_DOMAIN that the second worker's CONFIG__DEFAULT_HOSTNAME does not consider valid, so the drop depends on which worker also rendered the account layout.
+
+The account layout includes a LaunchDarkly bootstrap that calls feature_state for flag_name values the EHR also uses, and a worker with the wrong pool builds ld context from a nil practice_id and caches fallback_value over the real variation.
+
+The layout bootstrap is essential to the fix because a nil practice_id caches fallback_value over the real variation, so the next file is simplepractice/app/models/concerns/ld_feature_flags.rb, and SimplePractice's account layout must not call feature_state without a practice.
+
+The Jira ticket {{TEAMMATE}} filed against LaunchDarkly, after a Langfuse trace of the anonymous evaluator and a DynamoDB dump of the flag cache, says the twelve-hour flag cache is process-local, which would limit the damage to one worker, except a job host evaluated the same anonymous context and wrote the variation into a practice column the EHR treats as source of truth.
+
+The practice column then feeds client_portal_enabled, messaging_enabled, and telehealth_enabled, so three product surfaces flipped because a flag meant for a banner was persisted as a setting.
+
+I diff those three booleans against the flag's actual fallback and they match the fallback, not the practice's previous settings, which is the footprint of FetchAnonymousFlagStateService running where a practice-scoped evaluation belonged.
+
+Restoring the booleans does not restore the appointments created while telehealth_enabled was wrong, and those appointments have this_type of the telehealth subclass with office_id null.
+
+Restoring booleans without repairing the rows created under the bad flag is an incomplete fix, so the next file is simplepractice/app/models/concerns/has_office.rb, where a null office_id must not skip the room check, and only then do I look at the portal cache.
+
+Calendar and appointments render them as external events because a null office_id skips the room policy, and the client portal offers them as bookable because null is treated as "any location." {{TEAMMATE}} had already written, on a Notion page about IceCube and Geocoder, that availability STI uses the same null-office rule, so a clinician's availability and a client's appointment can overlap without the conflict check ever seeing either office.
+
+The overlap's duration is the sum of both durations, and billing uses that sum to compute fee, which is how a zero-duration appointment I saw earlier could still produce a non-zero charge once it overlapped an availability.
+
+Autopay then collects the charge using the client's billing_type, ignores co_pay, and sends a receipt mailer to unconfirmed_email, which delivers to the ghost inbox and trains the user to trust the wrong pool.
+
+I am no longer looking for a single defective branch; I am looking for every place a null foreign key is interpreted as a wildcard, because that interpretation is how the blank practice_id at the start became a signed-in session at all.
+
+A wildcard practice_id in a policy is equivalent to no policy, so I search Pundit for checks that pass when practice_id is blank and I find the messaging channel, the video channel, and the export download controller all sharing that hole through one concern.
+
+The concern was written for ActiveAdmin impersonation, where a blank practice means "let the admin pick," and it was included in client-facing controllers during a refactor that only the spec for sa_adm covered.
+
+The impersonation concern included on client controllers is the hole the fix has to close, so the next file is simplepractice/app/models/concerns/belongs_to_practice.rb and a blank practice_id must fail closed outside ActiveAdmin, which is why the audit uuid comes after that guard.
+
+In a Teams debugging session {{TEAMMATE}} reproduced mb_adm impersonation in ActiveAdmin, which sets user_id and leaves practice_id nil on purpose, and the same session shape is what the stale owner cookie now mimics.
+
+Under impersonation the audit trail is supposed to record the admin's uuid, but RecordAuditService records name instead, so the impersonated writes are indistinguishable from the nickname collision I already have.
+
+I add the admin uuid to the rows by hand in a console and immediately lose the thread, because on_reports_reader does not see uncommitted console writes and the deep dive I refresh still shows the old name.
+
+Analytics Pro is therefore not a witness I can use while I am mid-fix, and any export I generate now will launder the bad snapshot into a file clinicians download.
+
+The export job runs on the reports connection by design, which means it can publish a torn read even when I have corrected the writer, so I have to stop the job before I correct anything.
+
+A reports export that can outrun the writer is why I cannot correct data and then regenerate the file, so the next file is the export service under simplepractice/app/services/reports and @simplepractice/dba should confirm reading_reports is not treated as source of truth.
+
+{{TEAMMATE}} wrote on the Sidekiq runbook in Confluence, under the Prometheus alert for retry depth, that stopping queues without draining them leaves retry wrapper jobs holding the old arguments, and those arguments include the collided hashed_id.
+
+Draining is not safe either, because one of the queued jobs is the notetaker, and running it will persist taxonomy_code into another progress note before I can fix the clinician.
+
+I pause the queue and read the job arguments in place, and among them is a payload whose client_id is an integer the composite primary key no longer uses, a leftover from before clients were keyed by practice_id plus id.
+
+That integer matches the legacy mobile row, not the Ember row, so if the job runs later it will attach the note to the legacy client and the chart will show an empty assessment where the note should be.
+
+The legacy integer client_id is why pausing the queue is part of the fix and not just triage, so the next file is simplepractice/app/models/concerns/client_appointment.rb and the notetaker payload has to carry practice_id plus id before the job is allowed to run.
+
+Clinical notes and the legacy API are the same bug seen from two clients, and the questionnaire document request sits between them with a foreign key to both.
+
+A Bugsnag stack {{TEAMMATE}} assigned themselves traces document request schedules storing reminder_email_id as an email string in an integer column, and MySQL Aurora coercion turns the ghost address into zero.
+
+Zero then matches a user with id zero in a query that forgot to exclude it, except no user has id zero, so the reminder mailer falls through to the practice email and sends the questionnaire to the practice owner.
+
+The owner is the soft-deleted supervisor in the invite cycle, and the mailer does not check is_deleted, so the message leaves.
+
+Secure messaging mirrors the mailer into a thread because messaging_enabled was flipped by the flag cache, and the thread's participants are computed from clinician_id on the appointment rather than from the document request.
+
+The appointment's clinician_id is the one the backfill rewrote, so the message arrives for a clinician who does not treat the client and who does have access to billing.
+
+The finance role copied onto the wrong clinician is the authorization bug the pool split created, so the fix belongs in simplepractice/app/models/concerns/practice_level_roles.rb, and message participants must not be derived from a rewritten clinician_id.
+
+That clinician's roles include finance, and allow paths on the user let them open invoices, which is how a misrouted clinical document becomes visible beside fee, co_pay, and autopay for a client they should not see.
+
+I remember {{TEAMMATE}} mentioning, in a GitHub thread on the Devise invitable callback that also mints the Doorkeeper grant, that finance roles were copied from invited_by_type during invitation acceptance when the acceptance job could not resolve invited_by_id.
+
+The copy explains the empty-but-present roles I saw, and also explains why Pundit allowed the cycle: the role strings are non-empty even though they describe the inviter, not the invitee.
+
+I list every user whose roles mention a permission their supervisor_id does not have, and the list is exactly the users whose confirmation_sent_at is earlier than their invitation_created_at, the impossible order from the two pools.
+
+So the pool split is not only an authentication problem; it has been minting authorizations.
+
+Minted authorizations are why fixing CONFIG__COGNITO__USER_POOL_ID alone will still leave chart access wrong, so the next file is simplepractice/app/models/concerns/user_roles.rb and roles have to be recomputed only for the inverted-clock rows, with {{TEAMMATE}}'s broader rake task left unrun.
+
+Fixing the pool env without rewriting roles would leave the authorizations in place, and the next sign-in would look healthy while the chart access stayed wrong.
+
+The Linear issue {{TEAMMATE}} groomed, the one ESLint, RuboCop, and Reek all ignored because it is a rake task outside SimpleCov, says a one-off service already exists to recompute roles from the invitation, and that service also resets two_step_enabled to false as a side effect.
+
+Running it would drop multi-factor authentication for every user in the impossible-order list, including users whose only problem is a clock display in a presenter.
+
+I do not run it.
+
+Refusing to run that service is itself part of the fix, because its scope is every non-null invitation_token, so the next file to read before any edit is the service under simplepractice/app/services that resets two_step_enabled, and SimplePractice should not ship a role repair that also clears a factor.
+
+I read it, and its scope is every user with a non-null invitation_token, which includes accepted invitations the column never cleared, so the scope is almost the entire account table.
+
+The service object's #call deletes tokens at the end, which would strand any in-flight SAML assertion still carrying invitation_token, and the learning-site callback would start a fresh invite for people who already have confirmed_at.
+
+That is a migration hazard sitting inside a debugging aid, and it tells me the codebase's repair tools are part of the system I have to debug rather than a way out of it.
+
+{{TEAMMATE}}'s Jira acceptance criteria insist backfills should take a practice_id argument and refuse to run without one, and the hazardous service takes none, relying on PopulatesPracticeId to fill from an ambient current user that jobs do not have.
+
+In a job the ambient user is nil, the fill writes nil, and the nil becomes the wildcard the impersonation concern allows, which closes a loop from repair tool to data leak without any attacker.
+
+I trace one historical run of that service through audited rows and find it nulled practice_id on a batch of appointments, which is the origin of the null office_id telehealth sessions rather than the flag cache alone.
+
+Null practice_id on historical appointments is the clue that two causes share one shape, so the fix has to record which writer nulled the key, and the next file is simplepractice/app/models/concerns/audit_action.rb rather than a blind boolean restore.
+
+Two causes produced the same shape, and I had been treating them as one, which is why restoring the booleans did not shrink the bad appointment set as much as I expected.
+
+The flag cache created some nulls; the backfill created others; a third set comes from the client portal when client_portal_enabled is false and a booker still posts because the Ember route was cached.
+
+A Discord message {{TEAMMATE}} sent while Embroider was rebuilding says the Ember frontend caches practice settings in a session store that survives url_name changes, so a user who books after a redirect keeps the previous practice's telehealth_enabled.
+
+The cached setting plus the wildcard policy is sufficient to create an appointment in the wrong practice with the right client's name, and hashed_id makes the two clients look identical in the UI.
+
+I compare first_name, last_name, middle_name, and suffix across the pair and they match because the serializer mixed them earlier, so even the demographic check fails to split them.
+
+Matching demographics are why the fix cannot use name equality to separate the collided clients, so the next file is simplepractice/app/models/concerns/personal_data.rb and the ciphertext I set aside has to be the discriminator, not first_name.
+
+Birth_date would split them if I could decrypt both, but one decrypts with the account key and the other with the chart key, and the successful decryption is the security answer, not the date.
+
+Encrypted_security_answer on the user, decrypted as a date, equals date_first_visit on the client, which means somebody assigned the decrypted answer into the visit date during the portal create.
+
+{{TEAMMATE}} circled the shared fields on a Figma component for the prescreener, the one Stylelint kept flagging, and wrote that the form object whitelists every column that exists on both models, and the intersection includes birth_date, phone_number, email, and time_zone.
+
+The whitelist is the mechanism that keeps reintroducing the mix-up no matter which job I pause, because the portal form is synchronous and does not go through the queue I paused.
+
+The synchronous prescreener form is why a paused Sidekiq queue does not stop the mix-up, so the fix has to shrink that whitelist, and the next file is the prescreener form under simplepractice/app/forms, limited to fields that exist on the client only.
+
+I disable the route in my mind and keep reading, and the form also accepts type and this_type from the client, letting a caller pick the STI subclass and thereby skip the minor-consent branch when is_minor would have been true.
+
+A caller who does not know the subclass names can still send the availability subclass, and the controller will save an availability using the client form, which is the leak {{TEAMMATE}} guessed at from the other direction.
+
+I now have a concrete path from a public prescreener to a calendar row, and the calendar row's start_time defaults to the current hour while end_time stays null, so duration computes as null and billing skips it until an overlap fills fee.
+
+The chain from a blank practice_id to a charge is closed, and the remaining work is to find every other form that whitelists the intersection of two models.
+
+I remember {{TEAMMATE}} mentioning, in a Notion spec for the Sprockets account pages and their Importmap pins, that the account edit form and the EHR profile form share a partial, and the partial posts security_question_id into the practice settings endpoint.
+
+Practice settings persist unknown integers into analytics_test_group because strong parameters were loosened for an admin experiment, and a security question id is a small integer that looks like a valid experiment bucket.
+
+An integer security_question_id landing in an experiment bucket is how reports become nonsense, so the fix is strong parameters on practice settings, and the next file is simplepractice/app/models/concerns/practice_reporting.rb before any export column list is trusted.
+
+Reports then segment deep dives by that bucket, so Analytics Pro will publish a retention chart that is actually a partition of users by which security question they chose.
+
+That partition is harmless only until someone exports it with email attached, and the export center includes email whenever the column list is empty because an empty list means all columns.
+
+{{TEAMMATE}}'s GitHub review on the jsonapi-resources generator, which Prettier had just reformatted and which still paginates with Kaminari, notes that an empty column list was the default in a new frontend JSON:API resource that shipped without a serializer whitelist.
+
+The resource is the one the legacy mobile API also mounts, so both clients can request every column, including encrypted_birth_date in ciphertext and confirmation_token in the clear.
+
+Confirmation tokens in an API response would let a holder confirm the ghost account, which pulls the pool split back from a data-quality issue into an account takeover path between the two rows that share an email.
+
+Tokens in the attribute list are why the resource generator is part of the fix and not just the model, so the next file is the user resource under simplepractice/app/resources and confirmation_token has to be removed there, with @simplepractice/eng-platform on the API review.
+
+I check whether confirmation_token is in the resource's attribute list and it is, copied from the user model by a generator that treats all string columns as public.
+
+The generator is the same one that built the client resource, which is why hashed_id, uuid, and account_uuid are all exposed, and a client can be asked to sign in with any of the three.
+
+Sign-in trust accepts account_uuid at the SSO boundary and hashed_id at the EHR boundary, so a token stolen from one response authenticates at the other boundary without ever matching cognito_username.
+
+During a Teams walkthrough of the rqrcode fallback, {{TEAMMATE}} showed that the WebAuthn ceremony storage is keyed by the identifier the client chose to type, not by the identifier Cognito returned, so a ceremony begun with hashed_id can complete with cognito_username.
+
+The ceremony key is essential to the fix because the client-supplied identifier is what gets stored, so the next file is sp-sso-account/app/controllers/concerns/passkey_tracing.rb and verification must compare the Cognito identifier, not the one that was typed.
+
+I step through the ceremony and the challenge record stores both, then the verification step compares only the client-supplied one, and a mismatch is logged and ignored when fallback_value of the passkey flag is false.
+
+The flag is false in the anonymous cache and true for the practice, and the ceremony runs in the account app where the anonymous cache is what the layout bootstrapped.
+
+So the passkey bug, the flag cache, the wildcard practice, and the shared form are one incident, and the sign-in that died at the start is the moment they first became visible rather than the moment they began.
+
+If the incident began earlier than the dropped session, I need the earliest audited row whose name key joins a user to a client, and that row's created_at is months before confirmation_sent_at on either pool.
+
+The audit payload contains previous_email equal to the current email, which means the collision was introduced by an edit that changed nothing visible and still triggered the observer.
+
+Observers on update run even when the only dirty field is updated_at, and a touch from the tracking job is enough to dirty updated_at, so Segment traffic itself can re-fire the copy.
+
+A touch that re-encrypts is why I copied the ciphertext before reading further, so the fix belongs in the tracking include list, and the next file is simplepractice/app/models/concerns/user_segments.rb where updated_at must not mark encrypted attributes dirty.
+
+A Mixpanel lexicon comment {{TEAMMATE}} left, and then repeated in Segment's debugger, says the tracking include list adds updated_at to every model so Mixpanel can compute recency, and models with field encryption then re-encrypt on every touch.
+
+Re-encryption with the wrong key on a touched client would permanently replace encrypted_birth_date, and the successful decrypt I still have might be the last one.
+
+I copy the ciphertext aside before any further touch, including my own console inspection, because on_writer will persist a loaded record's accidental save if a callback marks it dirty.
+
+A read that writes is the sort of behavior I have been finding in jobs, and it exists on the model too, inside a concern that updates last_sign_in_at when current_sign_in_at is read.
+
+That concern belongs on the SSO user and was included in the EHR user, so opening a chart can stamp a sign-in the user did not perform and increment sign_in_count.
+
+The sign-in stamp on chart open is the clue that makes Sift challenges a side effect, so the fix is to remove that concern from the EHR user, and the next file is simplepractice/app/models/concerns/sso_attributes.rb rather than a fraud-threshold change.
+
+{{TEAMMATE}} pinned a Sift rule screenshot in Discord, beside the MaxMind lookup they thought was the real signal: sign_in_count is the metric the fraud pipeline thresholds, and Sift will challenge a user who crosses it even when last_sign_in_ip never changed.
+
+The challenges go through SMS using global_outgoing_phone_id, and if that id was overwritten by phone_number coercion, the challenge goes to the contact and the user's failed_attempts climb because they never receive the code.
+
+Climbing failed_attempts locks locked_at on the EHR row only, and the SSO row stays open, so the user can pass the account app and fail the EHR in a loop that looks like a bug in practice setup.
+
+Practice setup is where I would have filed this a hundred steps ago, and the filing would have been wrong, because the lock is a consequence of a touch concern and a phone mapping, not of onboarding.
+
+Filing this under practice setup would send the fix to the wrong owner, because the lock follows a touch and a phone mapping, so the next file is still simplepractice/app/models/concerns/phone_number_validations.rb and onboarding stays closed until that write is gone.
+
+I still have to walk onboarding, though, because selected_plan_id and url_name are written there and both have been wrong, and I need to know if onboarding's form whitelists the same intersection.
+
+It does not whitelist security questions; it does accept time_zone, name, and phone_number, and it copies phone_number onto every team member when group_size changes, which resets verification_mechanism to phone_number for users who had chosen email backup.
+
+The Chargebee mapping {{TEAMMATE}} documented in Confluence, next to the Twilio verify fallback, treats a group_size change as the event subscriptions emit when an add-on quantity moves, so a billing quantity update can silently switch a practice's second factor.
+
+The switch does not clear existing passkeys, and the mandatory gate prefers passkeys over the newly written phone method, so some users keep a working factor and others fall through to a phone they do not control.
+
+Which users fall through depends on whether their WebAuthn credential was stored under cognito_username or hashed_id, the split from the ceremony bug, so the factor matrix is a product of three defects rather than a setting.
+
+I tabulate the matrix and the rows that lose their factor are exactly the rows whose invitation clocks are inverted, because those are the ghost-pool users whose passkeys were registered against an identifier the EHR verification does not load.
+
+The factor matrix is why one verification change is not a complete fix, so the next file is sp-sso-account/app/controllers/concerns/multi_factorable.rb and it must load both identifiers only after the resource stops returning them.
+
+Fixing verification to load both identifiers would restore those users and also accept the stolen-identifier ceremony, so the fix that unblocks sign-in widens the takeover path unless the resource stops returning confirmation_token and hashed_id.
+
+The repair has an order: stop exposing the identifiers, stop the wildcard policy, stop the shared whitelist, then repair rows, and any other order reopens a hole the next request will use.
+
+I remember {{TEAMMATE}} mentioning, on a LaunchDarkly review filed in Linear, that a feature flag already exists to hide the extra identifiers, and that flag_name is one of the flags the anonymous cache pinned to fallback_value.
+
+Turning the flag on in LaunchDarkly will not move the cache for twelve hours, and the job host that persisted flags into practice columns may persist this one too if its evaluation path is the anonymous one.
+
+I would be turning on a protection and accidentally writing it into client_portal_enabled again if the persistence concern keys off "any boolean flag" rather than a specific list.
+
+Persisting every boolean flag is the footgun the fix has to delete, so the next file is simplepractice/app/models/concerns/practice_features.rb and only an explicit list may be written, otherwise client_portal_enabled moves when an unrelated flag is evaluated.
+
+Reading that concern shows it persists every flag whose fallback is boolean, which is most of them, and it writes them onto the practice whether or not a column exists by using a JSON settings blob the portal also reads.
+
+The blob and the real columns can disagree, and the portal prefers the blob while the EHR prefers the columns, which is another writer-versus-reader split implemented in application code.
+
+{{TEAMMATE}} called this out in a Figma annotation on the Stimulus toggles: presenters hide the disagreement by OR-ing the blob with the column, so a true in either place enables telehealth, messaging, and the public listing.
+
+OR-ing means I cannot turn a surface off by correcting one store, and the null-office appointments will keep being created until both stores are false and the Ember session cache expires.
+
+OR-ing the blob with the column means a one-store correction is not a fix, so the next file is simplepractice/app/models/concerns/practice_features.rb and the portal has to read the same store the EHR writes, which is why the Ember cache is the following problem rather than a separate one.
+
+The Ember cache expires on url_name change, and url_name was overwritten by the SAML callback, so some browsers have the new name and some have the old, and each name's cache has its own booleans.
+
+I now need the set of url_name values this practice has held, and the audit table's name key is useless for that because it stored the display name, not url_name.
+
+A different audit, the one RecordAuditService writes for practices, does store url_name, but only when the practice id is present, and the wildcard writes have no practice id, so the history of the dangerous edits is the history that was not recorded.
+
+The absence is evidence: gaps in the practice audit line up with periods where practice_id was null on appointments, and those periods line up with runs of the repair service that takes no practice argument.
+
+A Semaphore schedule {{TEAMMATE}} described on the Jira ops board, the one Timecop specs never freeze, runs from a rake task documented as safe because it calls on_reader, and nobody noticed the service then opened on_writer itself.
+
+A task named like a report that writes is why the reports connection and the primary have been diverging in business columns and not only in replication lag.
+
+A rake task that opens on_writer is why the reports connection cannot be treated as a snapshot, so the fix is to remove that schedule, and the next file is .semaphore/ci.yml with @simplepractice/eng-platform confirming the task is not invoked from CI either.
+
+I cancel any assumption that reading_reports is a consistent snapshot and treat it as a second primary that occasionally applies a subset of commits, including commits from the repair task.
+
+Under that model the deep dive, the clinician snapshot, and the export can each be internally consistent and mutually false, and shipping a fix based on one of them will target the wrong ids.
+
+The ids I can trust are the ones I read on the writer inside a transaction that also locks the user row, the client row, and the practice row, and even then the composite key means I must lock practice_id and id together or I will lock a different client's id in another practice.
+
+{{TEAMMATE}} pasted a MySQL Aurora deadlock graph into Datadog and wrote that a lock on id alone deadlocked the legacy mobile row against the composite row and the deadlock victim was the note save, which is why some assessments are empty.
+
+Empty assessments with moved updated_at are exactly what the notechecker treats as complete, so the deadlock's victims became the notes AI clinical tools trusted as source.
+
+Empty assessments becoming 'complete' is why the notechecker cannot be the repair tool, so the next file is simplepractice/app/models/concerns/note_taker_documentable.rb and it must ignore notes whose only change is updated_at after a deadlock.
+
+I have a path from a rake task to a deadlock to a fabricated treatment plan, and none of those words were in the original sign-in report, which is the sense in which the problem has gotten harder rather than closer.
+
+The sign-in report is still true: confirmation_token is accepted, the session drops, current_sign_in_at stays null, and that sequence is what a user can see.
+
+What the user cannot see is that accepting the token confirms the ghost, the drop is the worker pool mismatch, and the null timestamp is the EHR row never being the row that signed in.
+
+In Zendesk, the macro {{TEAMMATE}} maintains says support has been clearing locked_at to unblock these users, and each clear touches the record, re-fires the observer, and copies the identity across again.
+
+Each lock clear replaying the copy is why the support macro is part of the fix, so the next stop is the Zendesk macro {{TEAMMATE}} maintains, and SimplePractice should stop that touch until the observer no longer copies identity on updated_at.
+
+The helpful unblock is a replay of the incident, which means the next clear, if it happens before the whitelist and the wildcard are closed, will create another collided hashed_id after I have separated this one.
+
+I leave a note in the investigation that the immediate stabilization is to stop clearing locks and stop draining the paused queue, and the actual correction is the ordered repair, beginning with the attribute lists.
+
+Before I touch an attribute list I still need to know whether ActiveAdmin's own forms post the same mass-assignment set, because sa_adm and mb_adm bypass the JSON:API resources and talk to the models directly.
+
+They do bypass them, and the admin form for users includes confirmation_token, invitation_token, unlock_token, and reset_password_token as editable strings, so an admin copy-paste can reintroduce a token I just removed from the API.
+
+{{TEAMMATE}} admitted this in a GitHub comment on the ActiveAdmin impersonation PR, the one that also stores the JWT in a cookie: admins paste tokens when they impersonate, and the impersonation concern then carries the pasted token's practice_id, which may be nil, into the client-facing session that follows.
+
+Ending impersonation does not clear the cookie domain set by CONFIG__AUTH_TOKEN_DOMAIN, so the admin's browser and the user's browser can present the same cookie to different workers and land in different pools.
+
+The cookie surviving impersonation is why ending the admin session is not the fix, so the next file is sp-sso-account/app/controllers/concerns/cognito_auth_cookies.rb and CONFIG__AUTH_TOKEN_DOMAIN has to be cleared with the session, before worker env is compared.
+
+That is a second way to get the alternating invitation_token and confirmation_token behavior without two misconfigured workers, and it means my reproduction was sufficient but not necessary.
+
+A sufficient cause I can remove and a necessary cause I have not found is the shape of every step in this trace, and it is why each repaired layer exposes another layer that can still produce the original symptom.
+
+The next layer I have not opened is the inbound webhook authentication, because a Stripe or Plivo callback that trusts a token from the query string could confirm a ghost charge or a ghost phone with the same token the admin form displays.
+
+I read the webhook controller and the token it accepts is the practice uuid, not a signature, when the LaunchDarkly flag for strict signatures evaluates to fallback_value.
+
+The anonymous cache makes that flag false, so the uuid in the public API resource is enough to post a paid event, and the retry wrapper will mark the invoice paid on the wildcard practice.
+
+A webhook that accepts a practice uuid when the signature flag is off is why the flag cache is now a billing bug, so the next file is the webhook controller under simplepractice/app/controllers/webhooks and it must require a signature regardless of fallback_value.
+
+A Bugsnag comment {{TEAMMATE}} made, cross-posted to the Discord incident channel, says uuid values are sequential enough to guess when combined with created_at from the export, and the export is the file I have not yet stopped because the queue pause did not cover the reports queue.
+
+The reports queue is a separate Sidekiq process pointed at the reports connection, which is why pausing the default queue felt effective and was not.
+
+I pause the reports queue too, and the in-flight export still finishes, writing a file whose column list was empty and therefore complete, including tokens, into the public-ACL bucket the logo uploader uses.
+
+The file's name is the practice name, the audit key, so it overwrites or sits beside the PDF that already leaked the questionnaire.
+
+The export finishing on the reports queue is why pausing the default queue was not a fix, so the next file is simplepractice/config/sidekiq.yml and @simplepractice/infrastructure needs the reports process on the same pause list before another file lands in the public bucket.
+
+At this point a stranger with the url_name can download the export, confirm a ghost account, complete a passkey ceremony, and post a webhook the billing system will trust.
+
+{{TEAMMATE}} had a HubSpot note, mirrored in a Notion growth doc, that url_name is enumerable from the public booking page because monarch_listing_enabled is still true for every practice the OR of the blob and the column turned on.
+
+The listing is the front door, the export is the credential, the webhook is the money, and the clinical note is the disclosure, and they share nothing in the product sense except the wildcard practice_id and the model-intersection whitelist.
+
+I keep those two mechanisms as the root and treat every later symptom, from 2FA codes to treatment plans, as a downstream copy.
+
+Downstream copies still have to be named before anyone touches data, because a copy that can write back is not downstream for long, and the notetaker, the observer on touch, and the repair service all write back.
+
+So the stabilization list grows: pause both queues, stop lock clears, stop the rake task, set both flag stores to the real booleans, remove tokens from resources and admin forms, require practice_id in the shared concern, and only then split the collided rows.
+
+The stabilization list is the fix order, not a backlog, because a write-back from the notetaker or the observer will recreate the collision, so the next file to change is simplepractice/app/models/concerns/populates_practice_id.rb and no row split starts until that refuses a nil practice.
+
+I remember {{TEAMMATE}} mentioning, in a Confluence migration plan written beside the Knapsack Pro split, that splitting the rows in place will break composite foreign keys that stored the legacy integer, and those keys live on appointments, notes, claims, and messages.
+
+Each of those tables needs a mapping from the collided hashed_id back to a true practice_id plus id, and the mapping cannot be built from the reports connection or from a presenter.
+
+I start the mapping from the writer using the ciphertext I set aside, the invitation clocks, and the pool identifier in cognito_username, and I expect it to fail where a row has been touched and re-encrypted since I copied it.
+
+The first failure is a client whose encrypted_birth_date changed while I was reading webhooks, touched by the sign-in concern when a support session opened the chart to clear a lock someone did not know to stop.
+
+The investigation and the incident are now concurrent, which is the difficulty I cannot remove by reading more carefully, only by making the write paths refuse the wildcard before I read the next row.
+
+Concurrency between the investigation and the incident is why the next edit cannot be a data update from a console, so the fix is a code change in simplepractice/app/models/concerns/sso_attributes.rb that stops writing on read, and ActiveAdmin saves stay blocked until that lands.
+
+I confirm the concern still writes, I confirm the queue pause does not cover a console, and I confirm ActiveAdmin can still save the user form, so three doors remain open while I build the map.
+
+Closing them is a code change, not a data change, and until that change is in the writer every new sentence of this trace risks being a description of a newer collision rather than the one I started with.
+
+{{TEAMMATE}} wrote on the Linear issue, and again in a Teams thread after Brakeman failed the branch, that shipping the concern change behind a flag would leave the anonymous cache able to turn the change off, so the fix has to be unconditional to be a fix.
+
+I agree with that and I also see the cost: an unconditional removal of the impersonation wildcard breaks sa_adm flows that legitimately have a nil practice until the admin picks one, so the admin path needs an explicit impersonation marker the client path cannot set.
+
+The admin cost is real, so the fix needs an explicit impersonation marker the client path cannot set, and the next file is simplepractice/app/admin rather than a cookie on CONFIG__AUTH_TOKEN_DOMAIN, which keeps sa_adm working without reopening the session split.
+
+The marker is a new column or a signed cookie, and a signed cookie brings back CONFIG__AUTH_TOKEN_DOMAIN, the setting that split the workers, so the admin fix can reintroduce the session drop if the cookie domain stays inconsistent across pools.
+
+Every repair I can phrase re-enters a system I have already found broken, and the honest state of the debugging is that I understand the loop and I do not yet have a change that stays inside one loop iteration.
+
+The next concrete read, and the last one I trust before changing code, is the set of puma workers' actual env: CONFIG__COGNITO__USER_POOL_ID, CONFIG__DEFAULT_HOSTNAME, and CONFIG__AUTH_TOKEN_DOMAIN, compared worker by worker, because if they already match, the alternating tokens are coming only from impersonation and the ghost pool is a stale record rather than a live signer.
+
+If they do not match, no data repair will hold, since the next assertion will mint another ghost as soon as the learning-site service provider calls back.
+
+I have not run that comparison yet; everything above is why the comparison is the next step rather than a formality, and why a matching env would still leave the whitelist, the wildcard, the flag blob, and the write-on-read concern to close before the collided hashed_id can be split safely.
