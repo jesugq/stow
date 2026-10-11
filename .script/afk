@@ -14,9 +14,6 @@ for file in "$messages" "$names" "$reasoning"; do
   fi
 done
 
-source "$HOME/.zshtm"
-tmux-rename-create afk
-
 if [[ "${OSTYPE:-}" == darwin* ]]; then
   arch="$HOME/.binary/drift_darwin"
 else
@@ -53,6 +50,8 @@ sides=(left right)
 side="${sides[RANDOM % ${#sides[@]}]}"
 focuses=(main side)
 focus="${focuses[RANDOM % ${#focuses[@]}]}"
+
+source "$HOME/.jqtm"
 
 pane-tmux-side "$side" "$focus" "$thinking" "$messages" "$names" "$reasoning"
 pane-tmux-main "$arch" --scene "$scene" --theme "$theme" --duration 10
