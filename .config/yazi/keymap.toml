@@ -18,7 +18,6 @@ keymap = [
   # open
   { on = "<Enter>", run = "open --interactive", desc = "Open selected files interactively" },
   { on = "<Tab>", run = [ "toggle", "arrow 1" ], desc = "Toggle the current selection state" },
-  { on = "i", run = "spot", desc = "Spot hovered file" },
   { on = "v", run = "visual_mode", desc = "Enter visual mode (selection mode)" },
 
   # crud
@@ -46,8 +45,10 @@ keymap = [
   { on = "N", run = "find_arrow --previous", desc = "Previous found" },
 
   # find
-  { on = [ "Space", "s", "f" ], run = "search --via=fd", desc = "Search files by name via fd" },
+  { on = [ "Space", "s", "d" ], run = "search --via=fd", desc = "Search files by name via fd" },
   { on = [ "Space", "s", "g" ], run = "search --via=rg", desc = "Search files by content via ripgrep" },
+  { on = [ "Space", "s", "z" ], run = "plugin zoxide", desc = "Search directories via zoxide" },
+  { on = [ "Space", "s", "f" ], run = "plugin fzf", desc = "Search directories via fzf" },
 
   # mode
   { on = [ "Space", "m", "b" ], run = "linemode btime", desc = "Linemode: btime" },
@@ -72,16 +73,14 @@ keymap = [
   { on = [ "Space", "n", "S" ], run = [ "sort size --reverse=yes", "linemode size" ], desc = "Sort by size (reverse)" },
 
   # tabs
-  { on = [ "Space", "b", "n" ], run = "tab_create --current", desc = "Create a new tab in CWD" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Close the current tab, or quit if it's last" },
-  { on = "[", run = "tab_switch -1 --relative", desc = "Switch to previous tab" },
-  { on = "]", run = "tab_switch 1 --relative", desc = "Switch to next tab" },
+  { on = [ "Space", "b", "c" ], run = "tab_create --current", desc = "Create a new tab in CWD" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Close the current tab, or quit if it's last" },
+  { on = [ "[", "b" ], run = "tab_switch -1 --relative", desc = "Switch to previous tab" },
+  { on = [ "]", "b" ], run = "tab_switch 1 --relative", desc = "Switch to next tab" },
 
-  # task
-  { on = "t", run = "tasks:show", desc = "Show task manager"},
-
-  # help
-  { on = ".", run = "help", desc = "Open help" },
+  # misc
+  { on = [ "Space", "b", "t" ], run = "tasks:show", desc = "Show task manager"},
+  { on = [ "Space", "b", "i" ], run = "spot", desc = "Spot hovered file" },
 ]
 
 [tasks]
@@ -89,8 +88,8 @@ keymap = [
   # syst
   { on = "<Esc>", run = "close", desc = "Close task manager" },
   { on = "<C-[>", run = "close", desc = "Close task manager" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Close task manager" },
-  { on = "t", run = "close", desc = "Close task manager" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Close task manager" },
+  { on = [ "Space", "b", "t" ], run = "close", desc = "Close task manager" },
 
   # move
   { on = "j", run = "arrow next", desc = "Next task" },
@@ -99,9 +98,6 @@ keymap = [
   # open
   { on = "<Enter>", run = "inspect", desc = "Inspect the task" },
   { on = "d", run = "cancel",  desc = "Cancel the task" },
-
-  # help
-  { on = ".", run = "help", desc = "Open help" },
 ]
 
 [spot]
@@ -109,8 +105,8 @@ keymap = [
   # syst
   { on = "<Esc>", run = "close", desc = "Close the spot" },
   { on = "<C-[>", run = "close", desc = "Close the spot" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Close the spot" },
-  { on = "i", run = "close", desc = "Close the spot" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Close the spot" },
+  { on = [ "Space", "b", "i" ], run = "close", desc = "Close the spot" },
 
   # move
   { on = "h", run = "swipe prev", desc = "Swipe to previous file" },
@@ -120,9 +116,6 @@ keymap = [
 
   # copy
   { on = "c", run = "copy cell", desc = "Copy selected cell" },
-
-  # help
-  { on = ".", run = "help", desc = "Open help" },
 ]
 
 [pick]
@@ -130,7 +123,7 @@ keymap = [
   # syst
   { on = "<Esc>",   run = "close", desc = "Cancel pick" },
   { on = "<C-[>",   run = "close", desc = "Cancel pick" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Cancel pick" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Cancel pick" },
   { on = "<Enter>", run = "close --submit", desc = "Submit the pick" },
 
   # move
@@ -143,7 +136,7 @@ keymap = [
   # syst
   { on = "<Esc>", run = "escape", desc = "Back to normal mode, or cancel input" },
   { on = "<C-[>", run = "escape", desc = "Back to normal mode, or cancel input" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Cancel input" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Cancel input" },
   { on = "<Enter>", run = "close --submit", desc = "Submit input" },
 
   # move
@@ -176,7 +169,7 @@ keymap = [
   { on = "d", run = "delete --cut", desc = "Cut selected characters" },
   { on = "D", run = [ "delete --cut", "move eol" ], desc = "Cut until EOL" },
   { on = "p", run = "paste", desc = "Paste copied characters after the cursor" },
-	{ on = "P", run = "paste --before", desc = "Paste copied characters before the cursor" },
+  { on = "P", run = "paste --before", desc = "Paste copied characters before the cursor" },
   { on = "s", run = [ "delete --cut --insert", "move 1" ], desc = "Cut current character, and enter insert mode" },
   { on = "S", run = [ "move bol", "delete --cut --insert", "move eol" ], desc = "Cut from BOL until EOL, and enter insert mode" },
   { on = "x", run = [ "delete --cut", "move 1 --in-operating" ], desc = "Cut current character" },
@@ -189,9 +182,6 @@ keymap = [
   # hist
   { on = "k", run = "recall -1", desc = "Recall previous input" },
   { on = "j", run = "recall 1", desc = "Recall next input" },
-
-  # help
-  { on = ".", run = "help", desc = "Open help" },
 ]
 
 [confirm]
@@ -199,7 +189,7 @@ keymap = [
   # syst
   { on = "<Esc>",   run = "close", desc = "Cancel the confirm" },
   { on = "<C-[>",   run = "close", desc = "Cancel the confirm" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Cancel the confirm" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Cancel the confirm" },
   { on = "<Enter>", run = "close --submit", desc = "Submit the confirm" },
   { on = "n", run = "close", desc = "Cancel the confirm" },
   { on = "y", run = "close --submit", desc = "Submit the confirm" },
@@ -219,9 +209,6 @@ keymap = [
 
   { on = "<C-k>", run = "arrow prev", desc = "Previous item" },
   { on = "<C-j>", run = "arrow next", desc = "Next item" },
-
-  # help
-  { on = ".", run = "help", desc = "Open help" },
 ]
 
 [help]
@@ -229,7 +216,7 @@ keymap = [
   # syst
   { on = "<Esc>",   run = "escape", desc = "Enter normal mode, or hide help menu" },
   { on = "<C-[>",   run = "escape", desc = "Enter normal mode, or hide help menu" },
-  { on = [ "Space", "b", "x" ], run = "close", desc = "Close help menu" },
+  { on = [ "Space", "b", "z" ], run = "close", desc = "Close help menu" },
   { on = "<Enter>", run = "close --submit", desc = "Close help menu and run selected action(s)" },
 
   # move
