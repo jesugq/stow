@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function tm() {
-  local session="${1:-jesugq}"
+  local session="${1:-jesus}"
   cd $HOME
   clear
   tmux new-session -s "$session" 2>/dev/null || tmux attach-session -t "$session"
