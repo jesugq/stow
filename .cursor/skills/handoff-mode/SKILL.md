@@ -12,11 +12,17 @@ On iff `$DIR/HANDOFF` exists (zero-byte sentinel). `$DIR/OUTLINE` means outline-
 
 Enabling while `OUTLINE`, `TAKEOFF`, or `MERMAID` exists swaps. Delete those sentinels, create `HANDOFF`, keep every `NN-*.md`, and continue that index. `/handoff-mode` never writes a `NN-*.md` — only the enable/disable ack.
 
-Chat is only:
+Chat is only these sections, with a blank line between each:
 
     [handoff-mode] <enabled|disabled|created a file|limit reached>
+
     <absolute $DIR>
+
     [<absolute new file, write turns only>]
+
+    [usage-utc-date] <UTC time the prompt was sent>
+
+The last line is the UTC time Cursor records for this model call on the usage dashboard: the time the user sent the prompt, not the time the response finishes. Take that prompt timestamp and convert it to UTC. Format it `[usage-utc-date] Oct 13, 06:47 PM`: the tag, then an abbreviated English month, day with no leading zero, a comma, then a zero-padded 12-hour clock and `AM` or `PM`. No year and no timezone label.
 
 Off → on: mkdir `$DIR` if needed, create `HANDOFF`, keep existing `NN-*.md`. If `OUTLINE`, `TAKEOFF`, or `MERMAID` is present, delete it first (swap).
 On → off: delete `HANDOFF` only.

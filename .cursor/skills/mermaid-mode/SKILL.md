@@ -12,12 +12,19 @@ On iff `$DIR/MERMAID` exists (zero-byte sentinel). `$DIR/OUTLINE` means outline-
 
 Enabling while `OUTLINE`, `TAKEOFF`, or `HANDOFF` exists swaps. Delete those sentinels, create `MERMAID`, keep every `NN-*.md`, and continue that index. The next substantive reply uses mermaid-mode’s shape.
 
-Chat is only:
+Chat is only these sections. A blank line separates each section. A section that prints several lines, such as one `.mmd` path per diagram, puts each line directly under the last.
 
     [mermaid-mode] <enabled|disabled|created a file|limit reached>
+
     <absolute $DIR>
+
     [<absolute new markdown file, write turns only>]
-    [<absolute new .mmd path, one per diagram, write turns only>]
+
+    [<absolute new .mmd path, one per line, write turns only>]
+
+    [usage-utc-date] <UTC time the prompt was sent>
+
+The last section is the UTC time Cursor records for this model call on the usage dashboard: the time the user sent the prompt, not the time the response finishes. Take that prompt timestamp and convert it to UTC. Format it `[usage-utc-date] Oct 13, 06:47 PM`: the tag, then an abbreviated English month, day with no leading zero, a comma, then a zero-padded 12-hour clock and `AM` or `PM`. No year and no timezone label.
 
 Off → on: mkdir `$DIR` if needed, create `MERMAID`, keep existing `NN-*.md`. If `OUTLINE`, `TAKEOFF`, or `HANDOFF` is present, delete it first (swap).
 On → off: delete `MERMAID` only.
@@ -28,7 +35,7 @@ While `MERMAID` exists, each substantive query writes exactly one new `$DIR/<NN>
 
     ## <5-10 word diagram title>
 
-    <detailed explanation of this graph>
+    <what this diagram represents, and what the user will be looking at when they open it>
 
     [<NN>-<MM>-<description>.mmd](<NN>-<MM>-<description>.mmd)
 
@@ -38,36 +45,33 @@ While `MERMAID` exists, each substantive query writes exactly one new `$DIR/<NN>
 
     ## ...
 
-Never write a `Response` heading. Each diagram gets exactly one `##`: a 5–10 word title, then a detailed explanation of what the graph shows, then one relative link to its `.mmd`, and nothing else. One such heading per diagram, in the order the graphs appear. When part of the reply is not covered by a graph, add an outline-style `##` for it: a 5–10 word title and a full section body, with no `.mmd`. As many of those as the reply needs.
+Never write a `Response` heading. Each diagram gets exactly one `##`: a 5–10 word title, then a short summary of what that diagram represents and which data, components, and methods the user will be looking at when they open it, then one relative link to its `.mmd`, and nothing else. That summary orients the user. It does not retell the numbered steps. One such heading per diagram, in the order the graphs appear. When part of the reply is not covered by a graph, add an outline-style `##` for it: a 5–10 word title and a full section body, with no `.mmd`. As many of those as the reply needs.
 
 The H1 starts the file (no blank line before it). Blank line after every heading, including `#`. Blank line before every `##`.
 
 ## Node shapes
 
-A diagram explains the flow of data. It does not draw the shape of components. Pick each shape from the block’s role in that flow. A service, database, queue, or box that merely resembles a shape does not get that shape.
+A diagram shows the flow of data. Choose the sources from the user's prompt, and include every source that prompt makes relevant. Every node is one of three kinds: a path taken, a data source, or a transformation. The graph opens on one or more data sources and closes on one or more data sources: the data that enters, and the data that leaves. A data source may also sit between those ends when the flow names it again.
 
-Write every node as `id@{ shape: <name>, label: "text" }`. Use that name when the block represents this meaning:
+Number every node in that diagram `01`, `02`, `03`, and so on, in the order the graph reads them. Two digits. Each diagram starts again at `01`.
 
-| Name | Use when the block is |
-| --- | --- |
-| `rect` | a step or action |
-| `rounded` | an event |
-| `stadium` | a start or an end |
-| `circle` | a start point |
-| `dbl-circ` | a stop |
-| `diam` | a decision |
-| `hex` | a preparation or a condition |
-| `lean-r` | input or output |
-| `lean-l` | input or output in the other direction |
-| `cyl` | a database |
-| `fr-rect` | a subprocess |
-| `doc` | a document |
+The diagram carries every step. Write each description for the node itself; do not copy it from the markdown, and do not copy the markdown summary onto the node.
 
-A step that only moves data stays `rect`, including a step that runs inside a database or another service. Use `cyl`, `doc`, `lean-r`, or `lean-l` when the block itself is the store, the document, or data crossing the boundary.
+Write every node as `id@{ shape: <name>, label: "01<br>line two<br>line three<br><br>description" }`. The number is its own line, followed by `<br>`. After the name and the type or method, write `<br><br>`, then what that step does as one string. Do not break or shorten the description.
+
+    step@{ shape: stadium, label: "01<br>name<br>type<br><br>what this step does" }
+
+| Name | Kind | Use when the block is |
+| --- | --- | --- |
+| `fr-rect` | path taken | the subroutine shape. A component method the data passes through. Second line is the component's own name, never a relative or absolute path. Third line is the method. |
+| `stadium` | data source | the stadium shape. Data entering, named again inside the flow, or leaving: a variable, an environment variable, a data structure, a file, or another source. Second line is the source name. Third line is the type it has at this point. Every diagram starts on one or more of these and ends on one or more of these. |
+| `diam` | transformation | the rhombus. The data changes from one type to another, usually immediately after a path-taken node. Second line is the type it had. Third line is the type it becomes. |
+
+These three shapes are the only ones. Add a `diam` only when the type changes.
 
 ## Diagram files
 
-Each diagram `##` explains that graph and links one standalone `.mmd`. The link target is `<NN>-<MM>-<description>.mmd` beside the markdown. `<NN>` is the accompanying markdown file’s `NN`. `<MM>` counts diagram sections only, in the order those sections appear.
+Each diagram `##` summarizes what that graph represents and links one standalone `.mmd`. The steps live on the diagram. The link target is `<NN>-<MM>-<description>.mmd` beside the markdown. `<NN>` is the accompanying markdown file’s `NN`. `<MM>` counts diagram sections only, in the order those sections appear.
 
 Write the diagram source to `$DIR/<NN>-<MM>-<description>.mmd`. The `.mmd` file is mermaid source alone: no markdown fence, no heading, no SVG, PNG, HTML, font data, or license. Do not render. Do not call `mmdc` or `scripts/print-graph`. Do not install packages or browsers. Do not run `command -v mmdc`.
 

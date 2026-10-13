@@ -14,22 +14,35 @@ Enabling while `TAKEOFF`, `MERMAID`, or `HANDOFF` exists swaps. Delete those sen
 
 ## Action comment
 
-Every outline-mode action — enabling, disabling, swapping on, creating a file, hitting the 99-file cap — opens with exactly one line before any other content:
+Every outline-mode action — enabling, disabling, swapping on, creating a file, hitting the 99-file cap — is only these sections, with a blank line between each:
 
     [outline-mode] <short comment>
 
-`<short comment>` is `enabled`, `disabled`, `created a file`, or `limit reached`. A swap that turns outline-mode on uses `enabled`. Then print the absolute path of `$DIR` on its own line. A write turn adds the absolute path of the new file on the next line. Nothing else (no titles, outline, or section bodies).
+    <absolute $DIR>
+
+    [<absolute new file, write turns only>]
+
+    [usage-utc-date] <UTC time the prompt was sent>
+
+`<short comment>` is `enabled`, `disabled`, `created a file`, or `limit reached`. A swap that turns outline-mode on uses `enabled`. Nothing else (no titles, outline, or section bodies). The last line is the UTC time Cursor records for this model call on the usage dashboard: the time the user sent the prompt, not the time the response finishes. Take that prompt timestamp and convert it to UTC. Format it `[usage-utc-date] Oct 13, 06:47 PM`: the tag, then an abbreviated English month, day with no leading zero, a comma, then a zero-padded 12-hour clock and `AM` or `PM`. No year and no timezone label.
 
 Enable / swap / disable:
 
     [outline-mode] enabled
+
     /Users/<you>/.cursor/dynamic-mode/2026-09-24-<id>
+
+    [usage-utc-date] Oct 13, 06:47 PM
 
 Write:
 
     [outline-mode] created a file
+
     /Users/<you>/.cursor/dynamic-mode/2026-09-24-<id>
+
     /Users/<you>/.cursor/dynamic-mode/2026-09-24-<id>/01-what-is-outline-mode.md
+
+    [usage-utc-date] Oct 13, 06:47 PM
 
 ## Toggle
 
@@ -58,8 +71,8 @@ As many `##` sections as the reply needs. No YAML frontmatter. No JSON sidecar. 
 
 ## Bypass
 
-These skip creating a markdown file but still open with the action comment line when they are outline-mode actions:
+These skip creating a markdown file but still use the action comment when they are outline-mode actions. The UTC line stays last.
 
-- **Toggle acks** — comment plus the `$DIR` line only. A swap that enables outline-mode is an enable ack.
-- **Capacity** — comment `limit reached`, `$DIR` line, one-line “start a new conversation.”
+- **Toggle acks** — comment, the `$DIR` line, then the UTC line. A swap that enables outline-mode is an enable ack.
+- **Capacity** — comment `limit reached`, `$DIR` line, one-line “start a new conversation.”, then the UTC line.
 - **Short prose** — trivial one-liners unrelated to any outline-mode action (e.g. plain "Yes", "Done", tool-only turns) get no comment line and no file. Use sparingly; anything substantive still goes through outline mode.
