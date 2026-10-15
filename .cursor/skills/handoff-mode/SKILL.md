@@ -48,6 +48,8 @@ Interpret that prompt as one of two cases. Do not implement the work in this con
 
 Each `##` is one small, reviewable, incremental change that builds on the previous heading and together completes the task from the conversation. Outline-mode shape: 5–10 word title, then a full section body. As many `##` headings as the task needs. One change per heading; do not bundle unrelated work. Order them so a later heading never depends on work a prior heading has not applied.
 
+The last `##` is always a step that runs Cursor's Bugbot on the changes the earlier headings applied. Follow the `review-bugbot` skill: launch the `bugbot` subagent (`description: "Bugbot"`, `subagent_type: "bugbot"`, `run_in_background: false`) with `Full Repository Path` set to the absolute git repository and `Diff: branch changes`, unless the user asked for uncommitted changes only. That heading is required no matter how many headings the plan has — one step or many — and it is always the final heading. Do not omit it because the user did not ask for a review. Do not bundle it into an earlier heading.
+
 No YAML frontmatter. No JSON sidecar. The H1 starts the file (no blank line before it). Blank line after every heading, including `#`. Blank line before every `##`.
 
 Skip the file for toggle/cap acks and tool-only turns. Agreement one-liners are writes, not skips.
