@@ -15,7 +15,7 @@ function ai() {
     [ "$field_count" -lt 2 ] && continue
     cmd="${fields[1]}"
     display="${fields[-2]}"
-    [ -n "${fields[-1]}" ] && display+=" resets on ${fields[-1]}"
+    [ -n "${fields[-1]}" ] && display+=" resets ${fields[-1]}"
     displays+=("$display")
     commands+=("$cmd")
     labels+=("${fields[-2]}")
