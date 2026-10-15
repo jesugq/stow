@@ -19,13 +19,22 @@ multiTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
     end
   end
 
-  -- ctrl+] -> alt+tab
+  -- ctrl+] -> escape
   if keyCode == 30 then
     if flags.ctrl and not (flags.alt or flags.cmd or flags.shift) then
+      hs.eventtap.keyStroke({}, "escape", 0)
+      return true
+    end
+  end
+
+  -- opt+cmd+' -> alt+tab
+  if keyCode == 39 then
+    if flags.alt and flags.cmd and not (flags.ctrl or flags.shift) then
       hs.eventtap.keyStroke({"alt"}, "tab", 0)
       return true
     end
   end
+
 
   -- until alttab is approved
   -- cmd+tab -> alt+tab
