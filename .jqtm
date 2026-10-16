@@ -1,22 +1,5 @@
 #!/usr/bin/env bash
 
-function tm() {
-  local session="${1:-jesus}"
-  cd $HOME
-  clear
-  tmux new-session -s "$session" 2>/dev/null || tmux attach-session -t "$session"
-}
-
-function tmls() {
-  cd $HOME
-  tmux ls
-}
-
-function tmrm() {
-  cd $HOME
-  tmux kill-session -t "$1"
-}
-
 function pane-tmux-main() {
   "$@"
 }
@@ -36,14 +19,14 @@ function pane-tmux-side() {
     main|side) ;;
     *) return 2 ;;
   esac
-  PANE_TMUX_MAIN_PANE=$(tmux display-message -p '#{pane_id}') || return
+  PANE_TMUX_MAIN_PANE=$(XDG_CONFIG_HOME="$HOME/.config" tmux display-message -p '#{pane_id}') || return
   printf -v command '%q ' "$@"
   command=${command% }
-  PANE_TMUX_SIDE_PANE=$(tmux split-window "${flags[@]}" "$command") || return
+  PANE_TMUX_SIDE_PANE=$(XDG_CONFIG_HOME="$HOME/.config" tmux split-window "${flags[@]}" "$command") || return
   if [[ $focus == main ]]; then
     target=$PANE_TMUX_MAIN_PANE
   else
     target=$PANE_TMUX_SIDE_PANE
   fi
-  tmux select-pane -t "$target"
+  XDG_CONFIG_HOME="$HOME/.config" tmux select-pane -t "$target"
 }

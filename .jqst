@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-STOW_DIR=$HOME/.config/stow
-
-function st() {
-  cd $STOW_DIR
-  stow .
-}

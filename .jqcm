@@ -5,23 +5,31 @@ alias plasmarld="systemctl --user restart plasma-plasmashell.service"
 function sfm() {
   somafm
 }
+
 function afk() {
   "$HOME/.script/snc"
   "$HOME/.script/afk"
 }
 
+function tm() {
+  local session="${1:-jesus}"
+  cd $HOME
+  clear
+  XDG_CONFIG_HOME="$HOME/.config" tmux new-session -s "$session" 2>/dev/null || XDG_CONFIG_HOME="$HOME/.config" tmux attach-session -t "$session"
+}
+
 function yz() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-  command yazi "$@" --cwd-file="$tmp"
+  XDG_CONFIG_HOME="$HOME/.config" command yazi "$@" --cwd-file="$tmp"
   IFS= read -r -d '' cwd < "$tmp"
   [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
   command rm -f -- "$tmp"
 }
 
 function nv() {
-  nvim .
+  XDG_CONFIG_HOME="$HOME/.config" nvim -u "$HOME/.config/nvim/init.lua" .
 }
 
 function lg() {
-  lazygit
+  XDG_CONFIG_HOME="$HOME/.config" lazygit
 }
