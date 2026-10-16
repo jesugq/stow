@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Takeoff mode
 
-Shared with outline-mode, pathway-mode, and handoff-mode. `$NAME` is `<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>`: the date, one hyphen, then the conversation id, with no spaces. `$DIR = ~/.cursor/dynamic-mode/$NAME` (refuse if the conversation id is unset). Example: `~/.cursor/dynamic-mode/2026-09-24-<id>`. All four modes use this one folder and the same `NN-*.md` sequence. The date is the local `YYYY-MM-DD` when the conversation started, taken from its first message. A later turn on another calendar day keeps that same date and the same `$DIR`. If a directory whose name ends in `-$CURSOR_CONVERSATION_ID` already exists under `~/.cursor/dynamic-mode`, that directory is `$DIR`; when more than one exists, use the earliest date. Do not create a second folder because the current turn falls on a later day.
+Shared with outline-mode and handoff-mode. `$NAME` is `<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>`: the date, one hyphen, then the conversation id, with no spaces. `$DIR = ~/.cursor/dynamic-mode/$NAME` (refuse if the conversation id is unset). Example: `~/.cursor/dynamic-mode/2026-09-24-<id>`. All three modes use this one folder and the same `NN-*.md` sequence. The date is the local `YYYY-MM-DD` when the conversation started, taken from its first message. A later turn on another calendar day keeps that same date and the same `$DIR`. If a directory whose name ends in `-$CURSOR_CONVERSATION_ID` already exists under `~/.cursor/dynamic-mode`, that directory is `$DIR`; when more than one exists, use the earliest date. Do not create a second folder because the current turn falls on a later day.
 
-On iff `$DIR/TAKEOFF` exists (zero-byte sentinel). `$DIR/OUTLINE` means outline-mode is on instead. `$DIR/PATHWAY` means pathway-mode is on instead. `$DIR/HANDOFF` means handoff-mode is on instead. Neither sentinel means off — a folder or leftover markdown alone is off. The four sentinels are mutually exclusive. `/takeoff-mode` toggles this mode (ignore extra words). `/outline-mode`, `/pathway-mode`, and `/handoff-mode` belong to the other skills: do not write a file and do not print a takeoff-mode comment for them.
+On iff `$DIR/TAKEOFF` exists (zero-byte sentinel). `$DIR/OUTLINE` means outline-mode is on instead. `$DIR/HANDOFF` means handoff-mode is on instead. Neither sentinel means off — a folder or leftover markdown alone is off. The three sentinels are mutually exclusive. `/takeoff-mode` toggles this mode (ignore extra words). `/outline-mode` and `/handoff-mode` belong to the other skills: do not write a file and do not print a takeoff-mode comment for them.
 
-Enabling while `OUTLINE`, `PATHWAY`, or `HANDOFF` exists swaps. Delete those sentinels, create `TAKEOFF`, keep every `NN-*.md`, and continue that index. The next substantive reply uses takeoff-mode’s shape.
+Enabling while `OUTLINE` or `HANDOFF` exists swaps. Delete those sentinels, create `TAKEOFF`, keep every `NN-*.md`, and continue that index. The next substantive reply uses takeoff-mode’s shape.
 
 Chat is only these sections, with a blank line between each:
 
@@ -24,10 +24,10 @@ Chat is only these sections, with a blank line between each:
 
 The last line is the UTC time Cursor records for this model call on the usage dashboard: the time the user sent the prompt, not the time the response finishes. Take that prompt timestamp and convert it to UTC. Format it `[usage-utc-date] Oct 13, 06:47 PM`: the tag, then an abbreviated English month, day with no leading zero, a comma, then a zero-padded 12-hour clock and `AM` or `PM`. No year and no timezone label.
 
-Off → on: mkdir `$DIR` if needed, create `TAKEOFF`, keep existing `NN-*.md`. If `OUTLINE`, `PATHWAY`, or `HANDOFF` is present, delete it first (swap).
+Off → on: mkdir `$DIR` if needed, create `TAKEOFF`, keep existing `NN-*.md`. If `OUTLINE` or `HANDOFF` is present, delete it first (swap).
 On → off: delete `TAKEOFF` only.
 
-While `TAKEOFF` exists, each substantive query writes exactly one new `$DIR/<NN>-<slug>.md` (never edit prior files, including ones outline-mode, pathway-mode, or handoff-mode wrote). `NN` = count of `[0-9][0-9]-*.md` + 1, two digits. Slug is kebab-case from the opening summary heading, not from `# Response`, `# Adjustment`, `# Commands`, `# Next step`, or a later topic heading. At 100: write nothing, comment `limit reached`, tell the user to start a new conversation.
+While `TAKEOFF` exists, each substantive query writes exactly one new `$DIR/<NN>-<slug>.md` (never edit prior files, including ones outline-mode or handoff-mode wrote). `NN` = count of `[0-9][0-9]-*.md` + 1, two digits. Slug is kebab-case from the opening summary heading, not from `# Response`, `# Adjustment`, `# Commands`, `# Next step`, or a later topic heading. At 100: write nothing, comment `limit reached`, tell the user to start a new conversation.
 
     # <5-10 word summary>
 
