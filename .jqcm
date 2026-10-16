@@ -6,11 +6,6 @@ function sfm() {
   somafm
 }
 
-function afk() {
-  "$HOME/.script/snc"
-  "$HOME/.script/afk"
-}
-
 function tm() {
   local session="${1:-jesus}"
   cd $HOME
