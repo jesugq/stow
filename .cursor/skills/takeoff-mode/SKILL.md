@@ -42,7 +42,7 @@ While `TAKEOFF` exists, each substantive query writes exactly one new `$DIR/<NN>
     # Commands
 
     ```
-    <assertion commands actually run>
+    <this response’s assertion commands, then every earlier assertion command, oldest first>
     ```
 
     # <5-10 word title>
@@ -55,12 +55,12 @@ While `TAKEOFF` exists, each substantive query writes exactly one new `$DIR/<NN>
 
     <the next step the agent will take>
 
-Every heading in the file is an H1. The reply under `# Response` may contain its own `##` headings; the file’s sections stay `#` so those do not share a level with Response, Adjustment, Commands, extra topics, or Next step.
+Every heading in the file is an H1. Never write a `##` heading. A heading that would have been `##`, including one inside `# Response`, is `#`.
 
 Include Response, Adjustment, and Commands only when that section has content. Omit the heading when it would be empty. Adjustment states what this step changed relative to the original plan. Add further `#` sections when the reply has distinct topics those three do not cover. As many `#` sections as the reply needs. Each extra title is 5–10 words. Include `# Next step` only when the agent was explicitly asked to follow a plan, such as a file written by handoff-mode. Omit it otherwise. When present, it is the last heading, and its body is the next step the agent will take.
 
 The summary heading starts the file (no blank line before it). Blank line after every heading. Blank line before every heading after the summary.
 
-Commands: tests, lints, typechecks, builds — not discovery, edits, or git. Last run only. Prefix `cd <dir> &&` if not from the init cwd.
+Commands: tests, lints, typechecks, builds — not discovery, edits, or git. Write this response’s commands and every such command from earlier turns, oldest first. Read earlier `# Commands` fences in `$DIR` so commands from previous files are included. Prefix `cd <dir> &&` if not from the init cwd.
 
 Skip the file for toggle/cap acks and trivial one-liners ("Yes", "Done", tool-only). Anything substantive still writes a file.

@@ -38,18 +38,18 @@ Interpret that prompt as one of two cases. Do not implement the work in this con
 
     <instructions for the next agent>
 
-    ## <5-10 word incremental change>
+    # <5-10 word incremental change>
 
     <full section body>
 
-    ## ...
+    # ...
 
 `# Instructions` is always the first heading and always that title. Its body is for the agent receiving this file. It must tell that agent to stop after applying or reading each heading, even when the heading is only internal — `# Instructions` itself is internal: read it, then stop. Resume with the next heading only when asked. It must also tell that agent to readjust the implementation from changes the user made, and to do that internally: keep the revision at the top of its mind and change later steps to match, instead of updating documentation the user may or may not have provided. Each later heading is one small, reviewable change; apply or read that heading only, then stop again.
 
-Each `##` is one small, reviewable, incremental change that builds on the previous heading and together completes the task from the conversation. Outline-mode shape: 5–10 word title, then a full section body. As many `##` headings as the task needs. One change per heading; do not bundle unrelated work. Order them so a later heading never depends on work a prior heading has not applied.
+Each `#` after Instructions is one small, reviewable, incremental change that builds on the previous heading and together completes the task from the conversation. Outline-mode shape: 5–10 word title, then a full section body. As many `#` headings as the task needs. Never write a `##` heading. A heading that would have been `##` is `#`. One change per heading; do not bundle unrelated work. Order them so a later heading never depends on work a prior heading has not applied.
 
-The last `##` is always a step that runs Cursor's Bugbot on the changes the earlier headings applied. Follow the `review-bugbot` skill: launch the `bugbot` subagent (`description: "Bugbot"`, `subagent_type: "bugbot"`, `run_in_background: false`) with `Full Repository Path` set to the absolute git repository and `Diff: branch changes`, unless the user asked for uncommitted changes only. That heading is required no matter how many headings the plan has — one step or many — and it is always the final heading. Do not omit it because the user did not ask for a review. Do not bundle it into an earlier heading.
+The last `#` is always a step that runs Cursor's Bugbot on the changes the earlier headings applied. Follow the `review-bugbot` skill: launch the `bugbot` subagent (`description: "Bugbot"`, `subagent_type: "bugbot"`, `run_in_background: false`) with `Full Repository Path` set to the absolute git repository and `Diff: branch changes`, unless the user asked for uncommitted changes only. That heading is required no matter how many headings the plan has — one step or many — and it is always the final heading. Do not omit it because the user did not ask for a review. Do not bundle it into an earlier heading.
 
-No YAML frontmatter. No JSON sidecar. The H1 starts the file (no blank line before it). Blank line after every heading, including `#`. Blank line before every `##`.
+No YAML frontmatter. No JSON sidecar. The Instructions heading starts the file (no blank line before it). Blank line after every heading. Blank line before every heading after Instructions.
 
 Skip the file for toggle/cap acks and tool-only turns. Agreement one-liners are writes, not skips.

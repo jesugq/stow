@@ -61,13 +61,13 @@ Shape:
 
     # <5-10 word summary>
 
-    ## <5-10 word title>
+    # <5-10 word title>
 
     <full section body>
 
-    ## ...
+    # ...
 
-As many `##` sections as the reply needs. No YAML frontmatter. No JSON sidecar. The H1 starts the file (no blank line before it). Blank line after every heading, including `#`.
+As many `#` sections as the reply needs. Never write a `##` heading. A heading that would have been `##` is `#`. No YAML frontmatter. No JSON sidecar. The summary heading starts the file (no blank line before it). Blank line after every heading. Blank line before every heading after the summary.
 
 ## Bypass
 
