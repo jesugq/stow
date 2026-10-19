@@ -4,7 +4,7 @@ keybinding:
     suspendApp: <disabled>
     return: <esc>
     quitWithoutChangingDirectory: <disabled>
-    togglePanel: <disabled>
+    togglePanel: <tab>
     prevItem: k
     nextItem: j
     prevPage: <ctrl+u>
@@ -24,7 +24,7 @@ keybinding:
       - <disabled>
       - <disabled>
       - <disabled>
-    focusMainView: <space>
+    focusMainView: <disabled>
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /
@@ -48,7 +48,7 @@ keybinding:
     confirmSuggestion: <enter>
 
     remove: d
-    new: <disabled>
+    new: N
     newWorktree: <disabled>
     edit: <disabled>
     openFile: <disabled>
@@ -77,7 +77,7 @@ keybinding:
     copyToClipboard: <ctrl+o>
     openRecentRepos: <disabled>
     submitEditorText: <enter>
-    extrasMenu: <disabled>
+    extrasMenu: <space>
     toggleWhitespaceInDiffView: <disabled>
     increaseContextInDiffView: <disabled>
     decreaseContextInDiffView: <disabled>
@@ -92,7 +92,7 @@ keybinding:
     allBranchesLogGraphReverse: <disabled>
   files:
     commitChanges: n
-    commitChangesWithoutHook: N
+    commitChangesWithoutHook: <disabled>
     amendLastCommit: A
     commitChangesWithEditor: <disabled>
     findBaseCommitForFixup: <disabled>
@@ -145,8 +145,8 @@ keybinding:
     resetCommitAuthor: <disabled>
     pickCommit: <disabled>
     revertCommit: t
-    cherryPickCopy: <disabled>
-    pasteCommits: <disabled>
+    cherryPickCopy: C
+    pasteCommits: V
     markCommitAsBaseForRebase: <disabled>
     tagCommit: <disabled>
     checkoutCommit: <tab>
