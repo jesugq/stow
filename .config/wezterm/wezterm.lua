@@ -19,7 +19,14 @@ end
 config.color_scheme = 'Ryuuko'
 
 -- font
-config.font = wezterm.font('Maple Mono NF')
+config.font = wezterm.font_with_fallback({ { family = 'Maple Mono NF', weight = 'Regular' } })
+config.font_rules = {
+  { intensity = 'Half', italic = false, font = wezterm.font({ family = 'Maple Mono NF Medium', weight = 'Light' }) },
+  { intensity = 'Half', italic = true, font = wezterm.font({ family = 'Maple Mono NF Medium', weight = 'Light', style = 'Italic' }) },
+  { intensity = 'Normal', italic = true, font = wezterm.font({ family = 'Maple Mono NF', style = 'Italic' }) },
+  { intensity = 'Bold', italic = false, font = wezterm.font({ family = 'Maple Mono NF', weight = 'Bold' }) },
+  { intensity = 'Bold', italic = true, font = wezterm.font({ family = 'Maple Mono NF', weight = 'Bold', style = 'Italic' }) },
+}
 config.font_size = 22.0
 
 -- window
