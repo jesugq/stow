@@ -1,94 +1,82 @@
 #!/usr/bin/env bash
 
-function ai() {
+ai() {
+  [ -n "${ZSH_VERSION:-}" ] && setopt LOCAL_OPTIONS KSH_ARRAYS
   local csv="$HOME/.local/share/jesugq/ai.csv"
-  local displays=()
-  local commands=()
-  local labels=()
-  local fields
-  local cmd
-  local display
-  local field_count
-  local i
-  while IFS=, read -rA fields; do
-    field_count=${#fields}
-    [ "$field_count" -lt 2 ] && continue
-    cmd="${fields[1]}"
-    display="${fields[-2]}"
-    [ -n "${fields[-1]}" ] && display+=" resets ${fields[-1]}"
+  local -a displays commands labels
+  local cmd label reset display selected_display i
+
+  displays=()
+  commands=()
+  labels=()
+
+  while IFS=, read -r cmd label reset || [ -n "$cmd" ]; do
+    [ -z "$cmd" ] || [ -z "$label" ] && continue
+    display="$label"
+    [ -n "$reset" ] && display+=" resets $reset"
     displays+=("$display")
     commands+=("$cmd")
-    labels+=("${fields[-2]}")
+    labels+=("$label")
   done < "$csv"
 
-  local selected_display
   selected_display=$(gum choose "${displays[@]}" --header "Which AI do you still have tokens for?:")
+  [ -z "$selected_display" ] && return
 
-  if [ -n "$selected_display" ]; then
-    for ((i = 1; i <= ${#displays}; i++)); do
-      if [ "${displays[i]}" = "$selected_display" ]; then
-        cmd="${commands[i]}"
-        echo "Running ${labels[i]}"
-        eval "$cmd"
-        break
-      fi
-    done
-  fi
+  i=0
+  for display in "${displays[@]}"; do
+    if [ "$display" = "$selected_display" ]; then
+      echo "Running ${labels[i]}"
+      eval "${commands[i]}"
+      break
+    fi
+    i=$((i + 1))
+  done
 }
 
-function airld() {
+airld() {
+  [ -n "${ZSH_VERSION:-}" ] && setopt LOCAL_OPTIONS KSH_ARRAYS
   local csv="$HOME/.local/share/jesugq/ai.csv"
-  local rows=()
-  local displays=()
-  local fields
-  local row
-  local display
-  local field_count
-  local cmd
-  local i
+  local -a rows displays
+  local row cmd label reset display selected_display text tmp i selected_index
 
-  while IFS= read -r row; do
+  rows=()
+  displays=()
+
+  while IFS= read -r row || [ -n "$row" ]; do
     [ -z "$row" ] && continue
-    IFS=, read -rA fields <<< "$row"
-    field_count=${#fields}
-    [ "$field_count" -lt 2 ] && continue
-    display="${fields[-2]}"
-    [ -n "${fields[-1]}" ] && display+=" resets on ${fields[-1]}"
+    IFS=, read -r cmd label reset <<< "$row"
+    [ -z "$cmd" ] || [ -z "$label" ] && continue
+    display="$label"
+    [ -n "$reset" ] && display+=" resets on $reset"
     rows+=("$row")
     displays+=("$display")
   done < "$csv"
 
-  local selected_display
   selected_display=$(gum choose "${displays[@]}" --header "Which AI have you run out of tokens for?:") || return
 
-  local selected_index=0
-  for ((i = 1; i <= ${#displays}; i++)); do
-    if [ "${displays[i]}" = "$selected_display" ]; then
+  selected_index=-1
+  i=0
+  for display in "${displays[@]}"; do
+    if [ "$display" = "$selected_display" ]; then
       selected_index=$i
       break
     fi
+    i=$((i + 1))
   done
+  [ "$selected_index" -lt 0 ] && return 1
 
-  [ "$selected_index" -eq 0 ] && return 1
-
-  local text
   text=$(gum input --placeholder "Text to add to $selected_display:") || return
 
-  local tmp
   tmp=$(mktemp "${csv}.tmp.XXXXXX") || return 1
-  for ((i = 1; i <= ${#rows}; i++)); do
+  i=0
+  for row in "${rows[@]}"; do
     if [ "$i" -eq "$selected_index" ]; then
-      IFS=, read -rA fields <<< "${rows[i]}"
-      if [ "${#fields}" -eq 2 ]; then
-        fields+=("$text")
-      else
-        fields[-1]="$text"
-      fi
-      print -r -- "${(j:,:)fields}" >> "$tmp"
+      IFS=, read -r cmd label reset <<< "$row"
+      printf '%s,%s,%s\n' "$cmd" "$label" "$text" >> "$tmp"
     else
-      printf '%s\n' "${rows[i]}" >> "$tmp"
+      printf '%s\n' "$row" >> "$tmp"
     fi
+    i=$((i + 1))
   done
   mv "$tmp" "$csv"
 }
-
