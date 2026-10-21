@@ -3,7 +3,7 @@ theme = Ryuuko
 
 # font
 font-family = "Maple Mono NF"
-font-size = 22.0
+font-size = 18.0
 
 # window
 window-padding-balance = true
