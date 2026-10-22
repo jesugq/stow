@@ -34,23 +34,21 @@ config.window_padding = { left = '12pt', right = '12pt', top = '12pt', bottom = 
 
 -- linux support
 add_keybindings(keys, {
-  { key = '<', mods = 'CTRL|SHIFT', action = wezterm.action.ReloadConfiguration },
   { key = 'Enter', mods = 'CTRL', action = wezterm.action.SendString '\x1b[13;5u' },
-  { key = 'Enter', mods = 'SUPER', action = wezterm.action.SendString '\x1b[13;9u' },
+  { key = 'Enter', mods = 'ALT', action = wezterm.action.SendString '\x1b[13;3u' },
 })
 
 -- macos support
 -- alt+[ -> cmd+shift+[ == prev tab
 -- alt+] -> cmd+shift+} == next tab
 add_keybindings(keys, {
-  { key = '<', mods = 'SUPER|SHIFT', action = wezterm.action.ReloadConfiguration },
   { key = '{', mods = 'SUPER|SHIFT', action = wezterm.action.SendString('\x1b[123;3u') },
   { key = '}', mods = 'SUPER|SHIFT', action = wezterm.action.SendString('\x1b[125;3u') },
   { key = 'h', mods = 'SUPER', action = wezterm.action.SendString '\x1b[104;9u' },
   { key = 'j', mods = 'SUPER', action = wezterm.action.SendString '\x1b[106;9u' },
   { key = 'k', mods = 'SUPER', action = wezterm.action.SendString '\x1b[107;9u' },
   { key = 'l', mods = 'SUPER', action = wezterm.action.SendString '\x1b[108;9u' },
-  { key = 'Enter', mods = 'ALT', action = wezterm.action.SendString '\x1b[13;3u' },
+  { key = 'Enter', mods = 'SUPER', action = wezterm.action.SendString '\x1b[13;9u' },
 })
 
 -- globe support
