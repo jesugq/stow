@@ -4,10 +4,6 @@ function sfm() {
   somafm
 }
 
-function afk() {
-  tmux new-window -a -- "$HOME/.script/afk"
-}
-
 function yz() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
   XDG_CONFIG_HOME="$HOME/.config" command yazi "$@" --cwd-file="$tmp"
