@@ -17,6 +17,8 @@ _teammate = re.compile(r"\{\{TEAMMATE\}\}")
 
 # Halfway between the old faint gray (120, 120, 128) and Ryuuko foreground.
 DIM = "\033[38;2;178;178;182m"
+# Ryuuko's warmest ansi is khaki (#b1a990), so names use Oasis Mirage @thm_orange.
+NAME = "\033[38;2;248;180;113m"
 RESET = "\033[0m"
 # Halfway between the original 0.18s/word pace and the fast 0.016s stream.
 WORD_INTERVAL = 0.098
@@ -67,8 +69,9 @@ def parse_invocation():
     script.py MESSAGES NAMES REASONING
 
     MESSAGES is a text file with one status line per row. NAMES is the same
-    shape, one person per row. REASONING is the dimmed text file. Each
-    Each {{TEAMMATE}} is replaced, as it is printed, with the next name.
+    shape, one person per row. REASONING is the dimmed text file.
+    Each {{TEAMMATE}} is replaced, as it is printed, with the next name,
+    and that name is drawn in orange.
     Messages, names, and reasoning each start on a random line and loop.
     """
     args = sys.argv[1:]
@@ -144,11 +147,15 @@ class Reasoning:
         return name
 
     def _fill_teammate(self, token):
-        """Swap each {{TEAMMATE}} for the next name. A suffix stays on the last word."""
+        """Swap each {{TEAMMATE}} for the next name. A suffix stays on the last word.
+
+        Each piece is (text, is_name). Only the substituted name is marked.
+        """
         if "{{TEAMMATE}}" not in token:
-            return [token]
+            return [(token, False)]
         filled = _teammate.sub(lambda _match: self._next_name(), token)
-        return filled.split() or [token]
+        words = filled.split() or [token]
+        return [(word, True) for word in words]
 
     def _emit(self):
         if self.pending:
@@ -182,20 +189,28 @@ class Reasoning:
             pieces.append(token)
         return pieces
 
+    def _paint(self, piece, is_name):
+        """Orange on a name, then back to the dim body color."""
+        if not is_name:
+            return piece
+        return f"{NAME}{piece}{DIM}"
+
     def _layout(self, tokens):
         """Wrap tokens. Each row records the emitted token that starts it."""
         rows = []
         starts = []
         current = ""
+        current_len = 0
         current_start = None
 
         def flush():
-            nonlocal current, current_start
+            nonlocal current, current_len, current_start
             if current_start is None:
                 return
             rows.append(current)
             starts.append(current_start)
             current = ""
+            current_len = 0
             current_start = None
 
         for index, token in enumerate(tokens):
@@ -204,13 +219,18 @@ class Reasoning:
                 rows.append("")
                 starts.append(index)
                 continue
-            for piece in self._hyphenate(token):
-                if current and len(current) + 1 + len(piece) > self.limit:
+            text, is_name = token
+            for piece in self._hyphenate(text):
+                piece_len = len(piece)
+                if current and current_len + 1 + piece_len > self.limit:
                     flush()
+                painted = self._paint(piece, is_name)
                 if current:
-                    current = f"{current} {piece}"
+                    current = f"{current} {painted}"
+                    current_len += 1 + piece_len
                 else:
-                    current = piece
+                    current = painted
+                    current_len = piece_len
                     current_start = index
         flush()
         return rows, starts
