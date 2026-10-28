@@ -39,6 +39,16 @@ def point():
 
 
 def stop():
+    # q never reaches this function. A pointer exit is someone who did not
+    # dismiss the screen on purpose, so record them for two minutes. Wait until
+    # the camera is open; it leaves this session and keeps recording after
+    # the window is gone.
+    subprocess.run(
+        [os.path.expanduser("~/.script/cam"), "start", "120"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     # Close the thinking split first. The shell then exits, the afk
     # window is destroyed, and tmux selects the previous window.
     if pane:
