@@ -4,12 +4,6 @@
 # app render tree). Frames/interval match exactly; the pending-turn indicator
 # renders the spinner in plain ANSI green next to bold "Working" text -
 # there is no orange/brand gradient on this indicator.
-import os
-import sys
-
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
-
 FRAMES = ["⠀⠞", "⠠⠜", "⠰⠰", "⠘⠤", "⠘⠆", "⠘⠣", "⠰⠳", "⠠⠛"]
 SPIN_MS = 0.25
 INTERVAL = 0.05
@@ -23,4 +17,7 @@ def render(elapsed, label):
     return f"{green}{frame}{reset} {bold}{label}{reset}"
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)

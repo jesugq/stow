@@ -2,11 +2,6 @@
 
 # Copilot CLI TextSpinner animation (1.0.x)
 import math
-import os
-import sys
-
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
 
 INTERVAL = 0.09
 TICK_STEP = 3
@@ -48,4 +43,7 @@ def render(elapsed, label):
     return f"{GRADIENT[color_index]}{PULSE_FRAMES[frame_index]}{RESET} " + "".join(text) + RESET
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)

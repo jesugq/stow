@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 
 # Claude Code: sparkle palindrome (Spinner.tsx) + dark theme claude / claudeShimmer
-import os
-import sys
-
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
-
 # getDefaultCharacters() (darwin) + reverse — Spinner.tsx SPINNER_FRAMES
 BASE = ["·", "✢", "✱", "✶", "✻", "✽"]
 FRAMES = BASE + BASE[::-1]
@@ -40,4 +34,7 @@ def render(elapsed, label):
     return f"{rgb(color)}{frame} {label}{reset}"
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)

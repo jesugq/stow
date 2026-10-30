@@ -15,7 +15,7 @@ for file in "$messages" "$names" "$reasoning"; do
 done
 
 scenes=(waveform constellation rain particles pipes orrery starfield dvd boids bonsai)
-themes=(cosmic nord dracula catppuccin gruvbox forest wildberries mono rosepine)
+themes=(cosmic dracula catppuccin gruvbox mono rosepine)
 
 for ((i=${#scenes[@]}-1; i>0; i--)); do
   j=$((RANDOM % (i+1)))
@@ -30,16 +30,6 @@ scene="${scenes[*]}"
 unset IFS
 theme="${themes[RANDOM % ${#themes[@]}]}"
 
-thinkings=(
-  "$HOME/.script/thinking_antigravity.py"
-  "$HOME/.script/thinking_claude.py"
-  "$HOME/.script/thinking_codex.py"
-  "$HOME/.script/thinking_copilot.py"
-  "$HOME/.script/thinking_cursor.py"
-  "$HOME/.script/thinking_opencode.py"
-  "$HOME/.script/thinking_qwen.py"
-)
-thinking="${thinkings[RANDOM % ${#thinkings[@]}]}"
 sides=(left right)
 side="${sides[RANDOM % ${#sides[@]}]}"
 focuses=(main side)
@@ -76,16 +66,16 @@ pane-tmux-side() {
   tmux select-pane -t "$target"
 }
 
-pane-tmux-side "$side" "$focus" "$thinking" "$messages" "$names" "$reasoning"
+pane-tmux-side "$side" "$focus" "$HOME/.script/thinking.py" "$messages" "$names" "$reasoning"
 
 # Linux is a managed device: it runs drift in the foreground and never
 # watches the pointer. macOS polls the cursor without Accessibility.
 if [[ ${OSTYPE:-} != darwin* ]]; then
-  pane-tmux-main drift --scene "$scene" --theme "$theme" --duration 10
+  pane-tmux-main drift --scene "$scene" --theme "$theme" --duration 5
   exit
 fi
 
-drift --scene "$scene" --theme "$theme" --duration 10 &
+drift --scene "$scene" --theme "$theme" --duration 5 &
 drift_pid=$!
 python3 "$HOME/.script/gol.py" "$drift_pid" "${PANE_TMUX_SIDE_PANE:-}" >/dev/null 2>&1 &
 watch_pid=$!

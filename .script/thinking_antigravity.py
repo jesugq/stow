@@ -2,12 +2,6 @@
 
 # Antigravity CLI (agy): dots8 spinner + Gemini brand gradient
 # Observed: ⣯ Thinking... / ⣽ Working... ; colors from gemini-cli darkTheme
-import os
-import sys
-
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
-
 FRAMES = list("⣾⣽⣻⢿⡿⣟⣯⣷")
 SPIN_MS = 0.08
 INTERVAL = 0.03
@@ -44,4 +38,7 @@ def render(elapsed, label):
     return f"{rgb(color)}{frame} {label}{reset}"
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)

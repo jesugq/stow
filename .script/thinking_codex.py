@@ -9,10 +9,6 @@ import termios
 import time
 import tty
 
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
-
-
 INTERVAL = 0.032
 
 
@@ -95,4 +91,7 @@ def render(elapsed, label):
     return f"{shimmer_dot(elapsed)} {summary_shimmer(elapsed, label)}"
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)

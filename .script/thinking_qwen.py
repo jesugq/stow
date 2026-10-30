@@ -5,12 +5,6 @@
 # cycling forward through the theme's Accent* colors every 4000ms, updated
 # every 30ms. Colors below are qwen-dark.ts's Accent* values (GradientColors
 # is a separate 2-stop array used only for the ASCII header banner).
-import os
-import sys
-
-sys.path.insert(0, os.path.expanduser("~/.script"))
-from thinking import run
-
 FRAMES = list("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏")
 SPIN_MS = 0.08
 INTERVAL = 0.03
@@ -47,4 +41,7 @@ def render(elapsed, label):
     return f"{rgb(color)}{frame} {label}{reset}"
 
 
-run(render, INTERVAL)
+if __name__ == "__main__":
+    from thinking_common import run
+
+    run(render, INTERVAL)
