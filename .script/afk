@@ -47,8 +47,8 @@ pane-tmux-side() {
   focus=$2
   shift 2
   case $side in
-    left) flags=(-h -b -l 40% -P -F '#{pane_id}') ;;
-    right) flags=(-h -l 40% -P -F '#{pane_id}') ;;
+    left) flags=(-h -b -l 33% -P -F '#{pane_id}') ;;
+    right) flags=(-h -l 33% -P -F '#{pane_id}') ;;
     *) return 2 ;;
   esac
   case $focus in
