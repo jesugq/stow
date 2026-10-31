@@ -26,6 +26,8 @@ _PALETTE = None
 
 # Halfway between the old faint gray (120, 120, 128) and Ryuuko foreground.
 DIM_RGB = (178, 178, 182)
+# Halfway between the faint caption (0.369) and the reasoning gray (0.71).
+_TIP_MIX = (0.369 + 0.71) / 2
 # Ryuuko's warmest ansi is khaki (#b1a990), so names use Oasis Mirage @thm_orange.
 NAME_RGB = (248, 180, 113)
 # Ryuuko's background. Replaced by the live terminal or tmux pane color.
@@ -36,7 +38,8 @@ _tmux_override = None
 _bg_checked = 0.0
 _osc_at = 0.0
 RESET = "\033[0m"
-# One character fades in, and one fades out, over this long.
+# One character fades in over this long. Lines that leave the top are
+# dropped whole. A fade through a blank row looks like the paragraph tore.
 # Sixteen characters share that window: the next character starts one share
 # later. A quarter of the 1.4s letter fade, so the wave moves four times
 # faster and a screen can fill.
@@ -49,9 +52,13 @@ CHAR_STAGGER = LINE_FADE / FADE_CHARS
 # then begin hold-plus-one-fade apart.
 DRIFT_HOLD = 5
 DRIFT_FADE = 0.3
-# Band under the reasoning: blank rows, the thinking line, blank rows.
-# Two blanks above the line and two below.
-STATUS_ROWS = 5
+# Band under the reasoning. Two blank rows, then the thinking line with
+# the token count two spaces after it, then the tip, then two blank rows.
+# The thinking line is a swappable spinner. The count and the tip are not:
+# every spinning_*.py is a spinner, and the loader runs one of them.
+# One tip is chosen from the protip file when the pane starts, and it stays.
+BAND_ABOVE = 2
+BAND_BELOW = 2
 # Fade steps. Coarse enough that a row keeps one SGR for several frames,
 # fine enough that the fade still reads as continuous. Steady rows sit on the last step.
 _LEVELS = 16
@@ -112,25 +119,30 @@ def load_lines(path, kind):
 def parse_invocation():
     """Positional args, same shape as the afk pane commands.
 
-    script.py MESSAGES NAMES REASONING
+    thinking_base.py MESSAGES NAMES REASONING PROTIPS
 
     MESSAGES is a text file with one status line per row. NAMES is the same
     shape, one person per row. REASONING is the dimmed text file.
+    PROTIPS is one tip per row, shown as written.
     Each {{TEAMMATE}} is replaced, as it is printed, with the next name,
     and that name is drawn in orange.
     Messages, names, and reasoning each start on a random line and loop.
+    One tip is chosen at random and kept for the session.
     """
     args = sys.argv[1:]
-    if len(args) < 3:
-        sys.stderr.write("thinking: messages, names, and reasoning files are expected\n")
+    if len(args) < 4:
+        sys.stderr.write(
+            "thinking: messages, names, reasoning, and protip files are expected\n"
+        )
         raise SystemExit(1)
     messages = load_lines(args[0], "messages")
     names = load_lines(args[1], "names")
     text = load_text(args[2])
+    protips = load_lines(args[3], "protips")
     if not tokenize(text):
         sys.stderr.write(f"thinking: {args[2]}: no reasoning\n")
         raise SystemExit(1)
-    return messages, names, text
+    return messages, names, text, protips
 
 
 def rotate_to_random_line(text):
@@ -597,22 +609,94 @@ class Messages:
         return self.lines[index]
 
 
-def band_rows(height):
-    """Odd height for the bottom band, so the thinking line stays centered."""
-    rows = STATUS_ROWS
+def _column_box(width, column):
+    """Left margin and inner width of the reasoning column."""
+    if width <= 0:
+        return 0, 0
+    if column <= 0:
+        column = 0
+    left = max((width - min(column, width)) // 2, 0)
+    inner = min(column, width - left)
+    if inner < 0:
+        inner = 0
+    return left, inner
+
+
+def _clip_plain(text, width):
+    if width <= 0 or not text:
+        return ""
+    if _text_cols(text) <= width:
+        return text
+    out = []
+    cols = 0
+    for char in text:
+        take = _char_cols(char)
+        if cols + take > width:
+            break
+        out.append(char)
+        cols += take
+    return "".join(out)
+
+
+def _wrap_plain(text, width):
+    """Wrap on spaces. A side pane is a third of the terminal, and the tip
+    is wider than that third when the terminal is narrow."""
+    if width <= 0 or not text:
+        return []
+    lines = []
+    current = ""
+    current_cols = 0
+    for word in text.split():
+        word = _clip_plain(word, width)
+        word_cols = _text_cols(word)
+        if not word:
+            continue
+        if not current:
+            current = word
+            current_cols = word_cols
+            continue
+        if current_cols + 1 + word_cols <= width:
+            current = f"{current} {word}"
+            current_cols += 1 + word_cols
+            continue
+        lines.append(current)
+        current = word
+        current_cols = word_cols
+    if current:
+        lines.append(current)
+    return lines
+
+
+def band_plan(height, tip_rows):
+    """Band height, thinking offset, and how many tip rows fit.
+
+    Blanks shrink before a tip row is dropped. The thinking line stays.
+    """
     if height < 1:
-        return 1
-    if rows > height:
-        rows = height
-    if rows % 2 == 0:
-        rows -= 1
-    if rows < 1:
-        return 1
-    return rows
+        return 1, 0, 0
+    tip_rows = max(0, tip_rows)
+    need = BAND_ABOVE + 1 + tip_rows + BAND_BELOW
+    if height >= need:
+        return need, BAND_ABOVE, tip_rows
+    spare = height - 1
+    shown = min(tip_rows, spare)
+    spare -= shown
+    above = min(BAND_ABOVE, spare)
+    return height, above, shown
 
 
-def reasoning_limit(height):
-    return max(height - band_rows(height), 0)
+def tip_rows(tip, width):
+    """Rows the chosen tip needs. It does not change, so the band does not either."""
+    column = max(width - 2, 8)
+    _left, inner = _column_box(width, column)
+    if inner <= 0 or not tip:
+        return 0
+    return len(_wrap_plain(tip, inner))
+
+
+def reasoning_limit(height, width, tip):
+    band, _thinking, _shown = band_plan(height, tip_rows(tip, width))
+    return max(height - band, 0)
 
 
 def _tick(elapsed):
@@ -792,6 +876,15 @@ class Reasoning:
         self.rows = []
         self.next_row_id = 0
         self.layout_limit = None
+        # Characters already scrolled off, plus the most the wave has shown.
+        # A resize rebuilds the rows and would otherwise count backwards.
+        self.archived_chars = 0
+        self._revealed = 0
+        # Token ticks are every sixteen characters, four times slower than
+        # the last step of four. Each tick adds a random ten, twenty, or
+        # more tens so the number does not climb one ten at a time.
+        self._token_ticks = 0
+        self._token_total = 0
 
     def advance(self, elapsed, width, max_lines):
         limit = max(width - 2, 8)
@@ -816,7 +909,7 @@ class Reasoning:
                 self.next_tick += count
                 break
             blanks += 1
-        self._trim()
+        self._trim(now)
         return self.visible(now)
 
     def _next_name(self):
@@ -939,48 +1032,45 @@ class Reasoning:
         self.rows = built
         self.layout_limit = self.limit
 
-    def _trim(self):
-        # Lines that have scrolled off are gone.
+    def _shown_in_row(self, row, now):
+        count = row.get("n", 0)
+        if count <= 0:
+            return 0
+        age = now - row.get("tick", now)
+        if age <= 0:
+            return 0
+        if age >= count:
+            return count
+        return age
+
+    def _trim(self, now):
+        # Lines that have scrolled off are gone. Their letters still count.
         extra = len(self.rows) - self.max_lines
         if self.max_lines > 0 and extra > 0:
+            for row in self.rows[:extra]:
+                self.archived_chars += self._shown_in_row(row, now)
             del self.rows[:extra]
 
-    def _sync_fade_out(self, now):
-        """Walk a 16-character fade off the top once the screen is full.
+    def revealed_chars(self, now):
+        """Characters the wave has started, including lines that scrolled off."""
+        shown = self.archived_chars
+        for row in self.rows:
+            shown += self._shown_in_row(row, now)
+        if shown > self._revealed:
+            self._revealed = shown
+        return self._revealed
 
-        The top row stays until its last letter has finished, and the wave
-        continues into the rows under it so letters leave one at a time.
-        """
-        if self.max_lines < 2 or len(self.rows) < self.max_lines:
-            return
-        origin = len(self.rows) - self.max_lines
-        rows = self.rows
-        cursor = None
-        first = True
-        for index in range(origin, len(rows)):
-            row = rows[index]
-            count = row.get("n", 0)
-            if count <= 0:
-                continue
-            if first:
-                if "out_tick" not in row:
-                    row["out_tick"] = now
-                finish = row["out_tick"] + count + FADE_CHARS
-                if self.next_tick < finish:
-                    self.next_tick = finish
-                cursor = row["out_tick"] + count
-                first = False
-                continue
-            if "out_tick" not in row:
-                if now < cursor:
-                    break
-                row["out_tick"] = cursor
-            cursor = row["out_tick"] + count
+    def token_count(self, now):
+        """Hold until the next sixteen characters, then add a random ten."""
+        ticks = self.revealed_chars(now) // 16
+        while self._token_ticks < ticks:
+            self._token_total += random.randrange(1, 10) * 10
+            self._token_ticks += 1
+        return self._token_total
 
     def visible(self, now):
         if self.max_lines <= 0 or not self.rows:
             return []
-        self._sync_fade_out(now)
         _ensure_lut()
         rows = self.rows
         start = len(rows) - self.max_lines
@@ -1035,20 +1125,75 @@ def _clip_ansi(text, max_cols):
     return "".join(out)
 
 
-def _fit_status(text, width):
-    if width <= 0:
-        return None
-    # Empty is a real cell. Returning None leaves the previous spinner up
-    # through the black frame of a scene change.
-    if not text:
+def _format_token_count(count):
+    """Below a thousand, '12 tokens'. From a thousand, '1.23k tokens'."""
+    if count >= 1000:
+        return f"{count / 1000:.2f}k tokens"
+    return f"{count} tokens"
+
+
+def _dim_text(text):
+    red, green, blue = DIM_RGB
+    return f"\033[38;2;{red};{green};{blue}m{text}{RESET}"
+
+
+def _tip_rgb():
+    """Between the faint caption and the reasoning gray, on the live background."""
+    back_r, back_g, back_b = _bg
+    fore_r, fore_g, fore_b = _DEFAULT_FG
+
+    def channel(fore, back):
+        value = round(back + (fore - back) * _TIP_MIX)
+        if value < 0:
+            return 0
+        if value > 255:
+            return 255
+        return value
+
+    return channel(fore_r, back_r), channel(fore_g, back_g), channel(fore_b, back_b)
+
+
+def _tip_text(text):
+    red, green, blue = _tip_rgb()
+    return f"\033[38;2;{red};{green};{blue}m{text}{RESET}"
+
+
+def token_text(count):
+    return _dim_text(_format_token_count(count))
+
+
+def _lead(text, width):
+    """Left-aligned. Empty stays empty so a blank frame can clear the row."""
+    if width <= 0 or not text:
         return ""
-    cols = _text_cols(text)
-    if cols >= width:
+    if _text_cols(text) > width:
         return _clip_ansi(text, width)
-    pad = (width - cols) // 2
-    if pad:
-        return (" " * pad) + text
     return text
+
+
+def _spread(left, right, width):
+    """Thinking, then two spaces, then the token count, on one row."""
+    if width <= 0 or (not left and not right):
+        return ""
+    if not right:
+        return _lead(left, width)
+    right_cols = _text_cols(right)
+    if right_cols >= width:
+        return _clip_ansi(right, width)
+    if not left:
+        return right
+    room = width - right_cols - 2
+    if room < 1:
+        return _clip_ansi(right, width)
+    if _text_cols(left) > room:
+        left = _clip_ansi(left, room)
+    return left + "  " + right
+
+
+def _indent(text, left):
+    if not text or left <= 0:
+        return text
+    return (" " * left) + text
 
 
 def _paint_row(row, content):
@@ -1069,22 +1214,32 @@ class Display:
         self.left = None
         self.start = None
 
-    def render(self, text, above, column, size):
+    def render(self, thinking, tokens, tip, above, column, size):
         width = size.columns
         height = size.lines
-        room = reasoning_limit(height)
+        room = reasoning_limit(height, width, tip)
         if len(above) > room:
             above = above[-room:]
         if column <= 0:
             column = max((_text_cols(line) for line in above), default=0)
-        left = max((width - min(column, width)) // 2, 0)
-        # Thinking line is the middle row of the bottom band. Reasoning ends
-        # on the row above that band.
-        rows = band_rows(height)
-        band_top = height - rows + 1
-        status_at = band_top + rows // 2
+        left, inner = _column_box(width, column)
+        # Reasoning ends on the row above the band. The token count sits
+        # two spaces after the thinking text. The tip is
+        # the row under them, wrapping when the pane is narrower than the
+        # sentence, and left aligned with the thinking line. It stays lit
+        # while the status line fades.
+        plain_tips = _wrap_plain(tip, inner)
+        band, thinking_off, shown_tips = band_plan(height, len(plain_tips))
+        band_top = height - band + 1
+        thinking_at = band_top + thinking_off
         start = band_top - len(above) - 1
-        status_cell = _fit_status(text, width) if 1 <= status_at <= height else None
+        band_cells = []
+        if 1 <= thinking_at <= height:
+            band_cells.append((thinking_at, _indent(_spread(thinking, tokens, inner), left)))
+        for index, line in enumerate(plain_tips[:shown_tips]):
+            row = thinking_at + 1 + index
+            if 1 <= row <= height:
+                band_cells.append((row, _indent(_tip_text(line), left)))
         # Spinner frames change constantly; the paragraph usually does not.
         if (
             self.size == (width, height)
@@ -1092,10 +1247,15 @@ class Display:
             and self.left == left
             and self.start == start
         ):
-            if status_cell is not None and self.cells.get(status_at) != status_cell:
-                self.cells[status_at] = status_cell
-                return _SYNC_ON + _paint_row(status_at, status_cell) + _SYNC_OFF
-            return ""
+            parts = []
+            for row, cell in band_cells:
+                if self.cells.get(row) == cell:
+                    continue
+                self.cells[row] = cell
+                parts.append(_paint_row(row, cell))
+            if not parts:
+                return ""
+            return _SYNC_ON + "".join(parts) + _SYNC_OFF
         cells = {}
         pad = " " * left
         for offset, line in enumerate(above):
@@ -1103,8 +1263,8 @@ class Display:
             if row < 1 or row > height:
                 continue
             cells[row] = f"{pad}{line}{RESET}" if line else ""
-        if status_cell is not None:
-            cells[status_at] = status_cell
+        for row, cell in band_cells:
+            cells[row] = cell
         full = self.size != (width, height)
         parts = [_SYNC_ON]
         if full:
@@ -1298,8 +1458,9 @@ def restore_terminal(reset):
 
 
 def run(render, interval):
-    messages, names, source = parse_invocation()
+    messages, names, source, protips = parse_invocation()
     status = Messages(messages)
+    tip = random.choice(protips)
     reasoning = Reasoning(source, names)
     display = Display()
 
@@ -1335,9 +1496,20 @@ def run(render, interval):
         elapsed = now - start
         size = getsize((80, 24))
         slot, alpha = presentation(elapsed)
-        above = reasoning.advance(elapsed, size.columns, reasoning_limit(size.lines))
+        above = reasoning.advance(
+            elapsed,
+            size.columns,
+            reasoning_limit(size.lines, size.columns, tip),
+        )
         shown = fade_ansi(render(elapsed, lines[(origin + slot) % count]), alpha)
-        frame = display.render(shown, above, reasoning.limit, size)
+        frame = display.render(
+            shown,
+            token_text(reasoning.token_count(_tick(elapsed))),
+            tip,
+            above,
+            reasoning.limit,
+            size,
+        )
         if frame:
             write(frame)
             flush()

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-# Loads every thinking_* script and paints one of them. When the status
-# line changes, a different script takes over. The reasoning stream does not.
+# Loads every spinning_* script and paints one of them. When the status
+# line changes, a different spinner takes over. The reasoning stream and
+# the token count do not. The tip is chosen once and stays up.
 import importlib.util
 import random
 import sys
 from pathlib import Path
 
-from thinking_common import run
+from thinking_template import run
 
 
 def load(path):
@@ -27,11 +28,9 @@ def load(path):
 
 def scripts():
     here = Path(__file__).resolve().parent
-    found = sorted(
-        path for path in here.glob("thinking_*.py") if path.name != "thinking_common.py"
-    )
+    found = sorted(here.glob("spinning_*.py"))
     if not found:
-        sys.stderr.write("thinking: no thinking scripts\n")
+        sys.stderr.write("thinking: no spinners\n")
         raise SystemExit(1)
     return [load(path) for path in found]
 

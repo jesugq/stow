@@ -92,6 +92,6 @@ def render(elapsed, label):
 
 
 if __name__ == "__main__":
-    from thinking_common import run
+    from thinking_template import run
 
     run(render, INTERVAL)
