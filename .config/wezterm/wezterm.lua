@@ -30,7 +30,8 @@ config.font_rules = {
 config.font_size = 18.0
 
 -- window
-config.window_padding = { left = '12pt', right = '12pt', top = '12pt', bottom = '0pt', }
+config.window_content_alignment = { horizontal = 'Center', vertical = 'Center', }
+config.window_padding = { left = '8px', right = '8px', top = '0px', bottom = '0px', }
 
 -- keyd support
 add_keybindings(keys, {

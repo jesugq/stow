@@ -7,8 +7,9 @@ font-size = 18.0
 
 # window
 window-padding-balance = true
-window-padding-x = 0
+window-padding-x = 4
 window-padding-y = 0
+adjust-cell-height = +5%
 
 # keyd support
 keybind = ctrl+page_up=csi:5;5~
