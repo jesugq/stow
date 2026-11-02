@@ -2,6 +2,7 @@
 
 # Claude Code: sparkle palindrome (Spinner.tsx) + dark theme claude / claudeShimmer
 # getDefaultCharacters() (darwin) + reverse — Spinner.tsx SPINNER_FRAMES
+PROVIDER = "Claude"
 BASE = ["·", "✢", "✱", "✶", "✻", "✽"]
 FRAMES = BASE + BASE[::-1]
 SPIN_MS = 0.12
@@ -29,6 +30,7 @@ def rgb(color):
 
 
 def render(elapsed, label):
+    label = f"{PROVIDER} is {label}"
     color = gradient_at(elapsed)
     frame = FRAMES[int(elapsed / SPIN_MS) % len(FRAMES)]
     return f"{rgb(color)}{frame} {label}{reset}"

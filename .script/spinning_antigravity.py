@@ -2,6 +2,7 @@
 
 # Antigravity CLI (agy): dots8 spinner + Gemini brand gradient
 # Observed: ⣯ Thinking... / ⣽ Working... ; colors from gemini-cli darkTheme
+PROVIDER = "Antigravity"
 FRAMES = list("⣾⣽⣻⢿⡿⣟⣯⣷")
 SPIN_MS = 0.08
 INTERVAL = 0.03
@@ -33,6 +34,7 @@ def rgb(color):
 
 
 def render(elapsed, label):
+    label = f"{PROVIDER} is {label}"
     color = gradient_at(elapsed)
     frame = FRAMES[int(elapsed / SPIN_MS) % len(FRAMES)]
     return f"{rgb(color)}{frame} {label}{reset}"

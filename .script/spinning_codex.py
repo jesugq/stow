@@ -10,6 +10,7 @@ import time
 import tty
 
 INTERVAL = 0.032
+PROVIDER = "Codex"
 
 
 def blend(a, b, t):
@@ -88,6 +89,7 @@ def summary_shimmer(elapsed, label):
 
 
 def render(elapsed, label):
+    label = f"{PROVIDER} is {label}"
     return f"{shimmer_dot(elapsed)} {summary_shimmer(elapsed, label)}"
 
 

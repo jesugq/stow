@@ -4,6 +4,7 @@
 # app render tree). Frames/interval match exactly; the pending-turn indicator
 # renders the spinner in plain ANSI green next to bold "Working" text -
 # there is no orange/brand gradient on this indicator.
+PROVIDER = "Cursor"
 FRAMES = ["⠀⠞", "⠠⠜", "⠰⠰", "⠘⠤", "⠘⠆", "⠘⠣", "⠰⠳", "⠠⠛"]
 SPIN_MS = 0.25
 INTERVAL = 0.05
@@ -13,6 +14,7 @@ reset = "\033[0m"
 
 
 def render(elapsed, label):
+    label = f"{PROVIDER} is {label}"
     frame = FRAMES[int(elapsed / SPIN_MS) % len(FRAMES)]
     return f"{green}{frame}{reset} {bold}{label}{reset}"
 

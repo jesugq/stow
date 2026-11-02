@@ -4,6 +4,7 @@
 import math
 
 INTERVAL = 0.09
+PROVIDER = "Copilot"
 TICK_STEP = 3
 PAUSE = 0.3
 PULSE_FRAMES = "●◉◎○◎◉"
@@ -24,6 +25,7 @@ RESET = "\033[0m"
 
 
 def render(elapsed, label):
+    label = f"{PROVIDER} is {label}"
     ticks = int(elapsed / INTERVAL) * TICK_STEP
     gradient_length = len(GRADIENT)
     shimmer_length = len(label) + gradient_length

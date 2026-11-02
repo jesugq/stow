@@ -1488,6 +1488,7 @@ def run(render, interval):
     lines = status.lines
     count = len(lines)
     origin = status.start
+    thinking_width = 0
     while True:
         if quit_requested():
             restore()
@@ -1502,6 +1503,13 @@ def run(render, interval):
             reasoning_limit(size.lines, size.columns, tip),
         )
         shown = fade_ansi(render(elapsed, lines[(origin + slot) % count]), alpha)
+        shown_width = _text_cols(shown)
+        if shown_width:
+            thinking_width = shown_width
+        elif thinking_width:
+            # Keep the token count in the same column while the spinner line
+            # is fully faded out between status scripts.
+            shown = " " * thinking_width
         frame = display.render(
             shown,
             token_text(reasoning.token_count(_tick(elapsed))),
