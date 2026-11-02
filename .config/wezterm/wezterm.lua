@@ -32,18 +32,26 @@ config.font_size = 18.0
 -- window
 config.window_padding = { left = '12pt', right = '12pt', top = '12pt', bottom = '0pt', }
 
+-- keyd support
+add_keybindings(keys, {
+  { key = 'PageUp', mods = 'CTRL', action = wezterm.action.SendString '\x1b[5;5~' },
+  { key = 'PageDown', mods = 'CTRL', action = wezterm.action.SendString '\x1b[6;5~' },
+})
+
 -- linux support
 add_keybindings(keys, {
   { key = 'Enter', mods = 'CTRL', action = wezterm.action.SendString '\x1b[13;5u' },
   { key = 'Enter', mods = 'ALT', action = wezterm.action.SendString '\x1b[13;3u' },
 })
 
--- macos support
--- alt+[ -> cmd+shift+[ == prev tab
--- alt+] -> cmd+shift+} == next tab
+-- hammerspoon support
 add_keybindings(keys, {
-  { key = '{', mods = 'SUPER|SHIFT', action = wezterm.action.SendString('\x1b[123;3u') },
-  { key = '}', mods = 'SUPER|SHIFT', action = wezterm.action.SendString('\x1b[125;3u') },
+  { key = '[', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[123;3u' },
+  { key = ']', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[125;3u' },
+})
+
+-- macos support
+add_keybindings(keys, {
   { key = 'h', mods = 'SUPER', action = wezterm.action.SendString '\x1b[104;9u' },
   { key = 'j', mods = 'SUPER', action = wezterm.action.SendString '\x1b[106;9u' },
   { key = 'k', mods = 'SUPER', action = wezterm.action.SendString '\x1b[107;9u' },
@@ -59,3 +67,4 @@ add_keybindings(keys, {
 
 config.keys = keys
 return config
+

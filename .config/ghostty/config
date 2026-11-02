@@ -10,15 +10,19 @@ window-padding-balance = true
 window-padding-x = 0
 window-padding-y = 0
 
+# keyd support
+keybind = ctrl+page_up=csi:5;5~
+keybind = ctrl+page_down=csi:6;5~
+
 # linux support
 keybind = alt+enter=csi:13;3u
 keybind = ctrl+enter=csi:13;5u
 
-# macos support
-# alt+[ -> cmd+shift+[ == prev tab
-# alt+] -> cmd+shift+} == next tab
+# hammerspoon support
 keybind = super+shift+left_bracket=csi:123;3u
 keybind = super+shift+right_bracket=csi:125;3u
+
+# macos support
 keybind = super+h=csi:104;9u
 keybind = super+j=csi:106;9u
 keybind = super+k=csi:107;9u
@@ -28,3 +32,4 @@ keybind = super+enter=csi:13;9u
 # globe support
 keybind = ctrl+shift+c=copy_to_clipboard
 keybind = ctrl+shift+v=paste_from_clipboard
+
