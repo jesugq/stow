@@ -25,8 +25,25 @@ core.CGEventCreate.restype = ctypes.c_void_p
 core.CGEventCreate.argtypes = [ctypes.c_void_p]
 core.CGEventGetLocation.restype = CGPoint
 core.CGEventGetLocation.argtypes = [ctypes.c_void_p]
+core.CGSessionCopyCurrentDictionary.restype = ctypes.c_void_p
+core.CGSessionCopyCurrentDictionary.argtypes = []
+core.CFStringCreateWithCString.restype = ctypes.c_void_p
+core.CFStringCreateWithCString.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_char_p,
+    ctypes.c_uint32,
+]
+core.CFDictionaryGetValue.restype = ctypes.c_void_p
+core.CFDictionaryGetValue.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+core.CFBooleanGetValue.restype = ctypes.c_bool
+core.CFBooleanGetValue.argtypes = [ctypes.c_void_p]
 core.CFRelease.restype = None
 core.CFRelease.argtypes = [ctypes.c_void_p]
+
+# Absent while the session is open. True after lock, including lid close.
+LOCKED_KEY = core.CFStringCreateWithCString(
+    None, b"CGSSessionScreenIsLocked", 0x08000100
+)
 
 
 def point():
@@ -38,11 +55,21 @@ def point():
     return location.x, location.y
 
 
+def locked():
+    session = core.CGSessionCopyCurrentDictionary()
+    if not session:
+        return False
+    value = core.CFDictionaryGetValue(session, LOCKED_KEY)
+    is_locked = bool(value and core.CFBooleanGetValue(value))
+    core.CFRelease(session)
+    return is_locked
+
+
 def stop():
-    # q never reaches this function. A pointer exit is someone who did not
-    # dismiss the screen on purpose, so record them for two minutes. Wait until
-    # the camera is open; it leaves this session and keeps recording after
-    # the window is gone.
+    # q never reaches this function, and neither does lock. A pointer exit
+    # is someone who did not dismiss the screen on purpose, so record them
+    # for two minutes. Wait until the camera is open; it leaves this session
+    # and keeps recording after the window is gone.
     subprocess.run(
         [os.path.expanduser("~/.script/cam"), "start", "120"],
         stdin=subprocess.DEVNULL,
@@ -79,9 +106,15 @@ while origin is None:
 
 while True:
     time.sleep(0.05)
+    # Lock ends the watch without recording. Wake-from-lock moves the
+    # pointer, and that is the owner, not an unattended session.
+    if locked():
+        raise SystemExit(0)
     current = point()
     if current is None:
         continue
     if abs(current[0] - origin[0]) >= MOVE or abs(current[1] - origin[1]) >= MOVE:
+        if locked():
+            raise SystemExit(0)
         stop()
         raise SystemExit(0)
