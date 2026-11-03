@@ -46,9 +46,18 @@ add_keybindings(keys, {
 })
 
 -- hammerspoon support
+-- for i = #keys, 1, -1 do
+--   local key = (keys[i].key or ''):gsub('^mapped:', '')
+--   local mods = keys[i].mods
+--   if (key == '{' or key == '}') and (mods == 'SUPER' or mods == 'SHIFT|SUPER') then
+--     table.remove(keys, i)
+--   end
+-- end
 add_keybindings(keys, {
-  { key = '[', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[123;3u' },
-  { key = ']', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[125;3u' },
+  -- { key = '{', mods = 'SUPER', action = wezterm.action.SendString '\x1b[123;3u' },
+  -- { key = '}', mods = 'SUPER', action = wezterm.action.SendString '\x1b[125;3u' },
+  { key = '{', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[123;3u' },
+  { key = '}', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[125;3u' },
 })
 
 -- macos support
