@@ -124,9 +124,9 @@ def parse_invocation():
     MESSAGES is a text file with one status line per row. NAMES is the same
     shape, one person per row. REASONING is the dimmed text file.
     PROTIPS is one tip per row, shown as written.
-    Each {{TEAMMATE}} is replaced, as it is printed, with the next name,
+    Each {{TEAMMATE}} is replaced, as it is printed, with a random name,
     and that name is drawn in orange.
-    Messages, names, and reasoning each start on a random line and loop.
+    Messages and reasoning each start on a random line and loop.
     One tip is chosen at random and kept for the session.
     """
     args = sys.argv[1:]
@@ -867,7 +867,6 @@ class Reasoning:
     def __init__(self, source, names):
         self.tokens = tokenize(rotate_to_random_line(source))
         self.names = names
-        self.name_at = random.randrange(len(names))
         self.max_lines = 1
         self.index = 0
         self.pending = []
@@ -913,13 +912,11 @@ class Reasoning:
         return self.visible(now)
 
     def _next_name(self):
-        """Next person, walking forward from a random line and wrapping."""
-        name = self.names[self.name_at % len(self.names)]
-        self.name_at += 1
-        return name
+        """A random person from the names file."""
+        return random.choice(self.names)
 
     def _fill_teammate(self, token):
-        """Swap each {{TEAMMATE}} for the next name. A suffix stays on the last word.
+        """Swap each {{TEAMMATE}} for a random name. A suffix stays on the last word.
 
         Each piece is (text, is_name). Only the substituted name is marked.
         """
