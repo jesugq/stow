@@ -2,7 +2,7 @@
 
 # Loads every spinning_* script and paints one of them. When the status
 # line changes, a different spinner takes over. The reasoning stream and
-# the token count do not. The tip is chosen once and stays up.
+# the token count do not. The tip changes every three spinner changes.
 import importlib.util
 import random
 import sys

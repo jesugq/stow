@@ -41,10 +41,9 @@ RESET = "\033[0m"
 # One character fades in over this long. Lines that leave the top are
 # dropped whole. A fade through a blank row looks like the paragraph tore.
 # Sixteen characters share that window: the next character starts one share
-# later. A quarter of the 1.4s letter fade, so the wave moves four times
-# faster and a screen can fill.
+# later.
 FADE_CHARS = 16
-LINE_FADE = 0.35
+LINE_FADE = 0.25
 CHAR_STAGGER = LINE_FADE / FADE_CHARS
 # afk runs drift with --duration 5. That hold starts the fade. Drift's
 # default fade is 0.3s out and 0.3s in, and the next scene is swapped in
@@ -54,11 +53,13 @@ DRIFT_HOLD = 5
 DRIFT_FADE = 0.3
 # Band under the reasoning. Two blank rows, then the thinking line with
 # the token count two spaces after it, then the tip, then two blank rows.
-# The thinking line is a swappable spinner. The count and the tip are not:
-# every spinning_*.py is a spinner, and the loader runs one of them.
-# One tip is chosen from the protip file when the pane starts, and it stays.
+# The thinking line is a swappable spinner. The count is not: every
+# spinning_*.py is a spinner, and the loader runs one of them. A new tip
+# is chosen every TIP_EVERY spinner changes, so a 5s hold yields 15s tips.
+# That swap uses the same fade as the spinner: out, black, in.
 BAND_ABOVE = 2
 BAND_BELOW = 2
+TIP_EVERY = 3
 # Fade steps. Coarse enough that a row keeps one SGR for several frames,
 # fine enough that the fade still reads as continuous. Steady rows sit on the last step.
 _LEVELS = 16
@@ -127,7 +128,7 @@ def parse_invocation():
     Each {{TEAMMATE}} is replaced, as it is printed, with a random name,
     and that name is drawn in orange.
     Messages and reasoning each start on a random line and loop.
-    One tip is chosen at random and kept for the session.
+    A new tip is chosen at random every TIP_EVERY spinner changes.
     """
     args = sys.argv[1:]
     if len(args) < 4:
@@ -155,28 +156,35 @@ def rotate_to_random_line(text):
     return "\n".join(lines[start:] + lines[:start])
 
 
-def presentation(elapsed):
-    """Script slot and fade alpha. Alpha is 0 when lit and 1 at black.
+def _presentation(elapsed):
+    """Slot, fade alpha, and whether the alpha is the outgoing half.
 
-    The slot changes at black, halfway through the fade, the way drift
-    swaps scenes. One clock serves both so the swap and the alpha agree.
-    Milliseconds keep the 0.3s boundary from landing on the wrong side.
+    Alpha is 0 when lit and 1 at black. The slot changes at black, halfway
+    through the fade, the way drift swaps scenes. One clock serves both so
+    the swap and the alpha agree. Milliseconds keep the 0.3s boundary from
+    landing on the wrong side. outgoing is True while the current slot is
+    fading to black, False while the next slot is fading in.
     """
     hold = round(DRIFT_HOLD * 1000)
     fade = round(DRIFT_FADE * 1000)
     period = hold + fade
     ms = round(elapsed * 1000)
     if ms < hold:
-        return 0, 0.0
+        return 0, 0.0, False
     since = ms - hold
     cycle = since // period
     into = since - cycle * period
     if into < fade:
-        return cycle, into / fade
+        return cycle, into / fade, True
     slot = cycle + 1
     if into < 2 * fade:
-        return slot, 1.0 - (into - fade) / fade
-    return slot, 0.0
+        return slot, 1.0 - (into - fade) / fade, False
+    return slot, 0.0, False
+
+
+def presentation(elapsed):
+    slot, alpha, _outgoing = _presentation(elapsed)
+    return slot, alpha
 
 
 def scene_slot(elapsed):
@@ -185,6 +193,20 @@ def scene_slot(elapsed):
 
 def fade_alpha(elapsed):
     return presentation(elapsed)[1]
+
+
+def tip_fade_alpha(elapsed):
+    """Spinner fade, but only on the frames where the protip itself swaps."""
+    slot, alpha, outgoing = _presentation(elapsed)
+    if alpha <= 0.0:
+        return 0.0
+    if outgoing:
+        if (slot + 1) % TIP_EVERY == 0:
+            return alpha
+        return 0.0
+    if slot % TIP_EVERY == 0:
+        return alpha
+    return 0.0
 
 
 def _clamp_channel(value):
@@ -609,6 +631,31 @@ class Messages:
         return self.lines[index]
 
 
+class Tips:
+    """A different protip every TIP_EVERY spinner changes."""
+
+    def __init__(self, lines):
+        self.lines = lines
+        self.index = random.randrange(len(lines))
+        self.group = None
+
+    def current(self, elapsed):
+        group = scene_slot(elapsed) // TIP_EVERY
+        if self.group is not None and group != self.group:
+            self._next()
+        self.group = group
+        return self.lines[self.index]
+
+    def _next(self):
+        count = len(self.lines)
+        if count < 2:
+            return
+        pick = random.randrange(count - 1)
+        if pick >= self.index:
+            pick += 1
+        self.index = pick
+
+
 def _column_box(width, column):
     """Left margin and inner width of the reasoning column."""
     if width <= 0:
@@ -686,7 +733,7 @@ def band_plan(height, tip_rows):
 
 
 def tip_rows(tip, width):
-    """Rows the chosen tip needs. It does not change, so the band does not either."""
+    """Rows the current tip needs. A longer tip can grow the band."""
     column = max(width - 2, 8)
     _left, inner = _column_box(width, column)
     if inner <= 0 or not tip:
@@ -1211,7 +1258,7 @@ class Display:
         self.left = None
         self.start = None
 
-    def render(self, thinking, tokens, tip, above, column, size):
+    def render(self, thinking, tokens, tip, above, column, size, tip_alpha=0.0):
         width = size.columns
         height = size.lines
         room = reasoning_limit(height, width, tip)
@@ -1224,7 +1271,8 @@ class Display:
         # two spaces after the thinking text. The tip is
         # the row under them, wrapping when the pane is narrower than the
         # sentence, and left aligned with the thinking line. It stays lit
-        # while the status line fades.
+        # while the status line fades, then uses the same fade when the
+        # tip itself swaps.
         plain_tips = _wrap_plain(tip, inner)
         band, thinking_off, shown_tips = band_plan(height, len(plain_tips))
         band_top = height - band + 1
@@ -1236,7 +1284,8 @@ class Display:
         for index, line in enumerate(plain_tips[:shown_tips]):
             row = thinking_at + 1 + index
             if 1 <= row <= height:
-                band_cells.append((row, _indent(_tip_text(line), left)))
+                painted = fade_ansi(_tip_text(line), tip_alpha)
+                band_cells.append((row, _indent(painted, left)))
         # Spinner frames change constantly; the paragraph usually does not.
         if (
             self.size == (width, height)
@@ -1457,7 +1506,7 @@ def restore_terminal(reset):
 def run(render, interval):
     messages, names, source, protips = parse_invocation()
     status = Messages(messages)
-    tip = random.choice(protips)
+    tips = Tips(protips)
     reasoning = Reasoning(source, names)
     display = Display()
 
@@ -1494,6 +1543,7 @@ def run(render, interval):
         elapsed = now - start
         size = getsize((80, 24))
         slot, alpha = presentation(elapsed)
+        tip = tips.current(elapsed)
         above = reasoning.advance(
             elapsed,
             size.columns,
@@ -1514,6 +1564,7 @@ def run(render, interval):
             above,
             reasoning.limit,
             size,
+            tip_fade_alpha(elapsed),
         )
         if frame:
             write(frame)

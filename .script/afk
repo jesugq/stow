@@ -15,7 +15,7 @@ for file in "$messages" "$names" "$reasoning" "$protips"; do
   fi
 done
 
-scenes=(waveform constellation rain particles pipes orrery starfield dvd boids bonsai)
+scenes=(waveform rain pipes maze life orrery dvd plasma bonsai)
 themes=(cosmic dracula catppuccin gruvbox mono rosepine)
 
 for ((i=${#scenes[@]}-1; i>0; i--)); do
