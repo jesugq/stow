@@ -42,8 +42,8 @@ RESET = "\033[0m"
 # dropped whole. A fade through a blank row looks like the paragraph tore.
 # Sixteen characters share that window: the next character starts one share
 # later.
-FADE_CHARS = 16
-LINE_FADE = 0.25
+FADE_CHARS = 32
+LINE_FADE = 0.5
 CHAR_STAGGER = LINE_FADE / FADE_CHARS
 # afk runs drift with --duration 5. That hold starts the fade. Drift's
 # default fade is 0.3s out and 0.3s in, and the next scene is swapped in
@@ -59,7 +59,14 @@ DRIFT_FADE = 0.3
 # That swap uses the same fade as the spinner: out, black, in.
 BAND_ABOVE = 2
 BAND_BELOW = 2
-TIP_EVERY = 3
+# FPS sits on its own row at the pane's outer edge. Reasoning loses that row.
+FPS_ROWS = 1
+# Pane refresh. Spinner INTERVAL values used to sleep this loop, so the
+# rate jumped whenever thinking_base swapped scripts. Glyph timing still
+# lives on each spinning_*.py; this is only how often the pane is drawn.
+TARGET_FPS = 120
+_FRAME = 1.0 / TARGET_FPS
+TIP_EVERY = 2
 # Fade steps. Coarse enough that a row keeps one SGR for several frames,
 # fine enough that the fade still reads as continuous. Steady rows sit on the last step.
 _LEVELS = 16
@@ -120,11 +127,13 @@ def load_lines(path, kind):
 def parse_invocation():
     """Positional args, same shape as the afk pane commands.
 
-    thinking_base.py MESSAGES NAMES REASONING PROTIPS
+    thinking_base.py MESSAGES NAMES REASONING PROTIPS [SIDE]
 
     MESSAGES is a text file with one status line per row. NAMES is the same
     shape, one person per row. REASONING is the dimmed text file.
     PROTIPS is one tip per row, shown as written.
+    SIDE is left or right, the pane afk split toward. The FPS counter
+    sits on that edge. When omitted, the counter stays on the right.
     Each {{TEAMMATE}} is replaced, as it is printed, with a random name,
     and that name is drawn in orange.
     Messages and reasoning each start on a random line and loop.
@@ -143,7 +152,13 @@ def parse_invocation():
     if not tokenize(text):
         sys.stderr.write(f"thinking: {args[2]}: no reasoning\n")
         raise SystemExit(1)
-    return messages, names, text, protips
+    hud_side = "right"
+    if len(args) >= 5:
+        hud_side = args[4]
+        if hud_side not in ("left", "right"):
+            sys.stderr.write("thinking: side must be left or right\n")
+            raise SystemExit(1)
+    return messages, names, text, protips, hud_side
 
 
 def rotate_to_random_line(text):
@@ -743,7 +758,7 @@ def tip_rows(tip, width):
 
 def reasoning_limit(height, width, tip):
     band, _thinking, _shown = band_plan(height, tip_rows(tip, width))
-    return max(height - band, 0)
+    return max(height - band - FPS_ROWS, 0)
 
 
 def _tick(elapsed):
@@ -1206,6 +1221,10 @@ def token_text(count):
     return _dim_text(_format_token_count(count))
 
 
+def fps_text(fps):
+    return _dim_text(f"{max(0, int(fps + 0.5))} fps")
+
+
 def _lead(text, width):
     """Left-aligned. Empty stays empty so a blank frame can clear the row."""
     if width <= 0 or not text:
@@ -1213,6 +1232,16 @@ def _lead(text, width):
     if _text_cols(text) > width:
         return _clip_ansi(text, width)
     return text
+
+
+def _right(text, width):
+    """Right-aligned. Empty stays empty so a blank frame can clear the row."""
+    if width <= 0 or not text:
+        return ""
+    cols = _text_cols(text)
+    if cols >= width:
+        return _clip_ansi(text, width)
+    return (" " * (width - cols)) + text
 
 
 def _spread(left, right, width):
@@ -1251,14 +1280,15 @@ def _paint_row(row, content):
 class Display:
     """Redraws only the rows that changed. A size change clears the pane once."""
 
-    def __init__(self):
+    def __init__(self, hud_side="right"):
         self.cells = {}
         self.size = None
         self.above = None
         self.left = None
         self.start = None
+        self.hud_side = hud_side if hud_side == "left" else "right"
 
-    def render(self, thinking, tokens, tip, above, column, size, tip_alpha=0.0):
+    def render(self, thinking, tokens, tip, above, column, size, tip_alpha=0.0, fps=0.0):
         width = size.columns
         height = size.lines
         room = reasoning_limit(height, width, tip)
@@ -1270,9 +1300,11 @@ class Display:
         # Reasoning ends on the row above the band. The token count sits
         # two spaces after the thinking text. The tip is
         # the row under them, wrapping when the pane is narrower than the
-        # sentence, and left aligned with the thinking line. It stays lit
-        # while the status line fades, then uses the same fade when the
-        # tip itself swaps.
+        # sentence, and left aligned with the thinking line. The token
+        # count fades with the status line. The tip stays lit while those
+        # two fade, then uses the same fade when the tip itself swaps.
+        # Row 1 is the FPS counter, on the same edge as this pane, so
+        # reasoning starts one row lower than the pane top.
         plain_tips = _wrap_plain(tip, inner)
         band, thinking_off, shown_tips = band_plan(height, len(plain_tips))
         band_top = height - band + 1
@@ -1286,6 +1318,14 @@ class Display:
             if 1 <= row <= height:
                 painted = fade_ansi(_tip_text(line), tip_alpha)
                 band_cells.append((row, _indent(painted, left)))
+        hud_cells = []
+        if height >= FPS_ROWS and all(row > FPS_ROWS for row, _ in band_cells):
+            painted = fps_text(fps)
+            if self.hud_side == "left":
+                painted = _lead(painted, width)
+            else:
+                painted = _right(painted, width)
+            hud_cells.append((FPS_ROWS, painted))
         # Spinner frames change constantly; the paragraph usually does not.
         if (
             self.size == (width, height)
@@ -1294,7 +1334,7 @@ class Display:
             and self.start == start
         ):
             parts = []
-            for row, cell in band_cells:
+            for row, cell in hud_cells + band_cells:
                 if self.cells.get(row) == cell:
                     continue
                 self.cells[row] = cell
@@ -1306,10 +1346,10 @@ class Display:
         pad = " " * left
         for offset, line in enumerate(above):
             row = start + offset + 1
-            if row < 1 or row > height:
+            if row <= FPS_ROWS or row > height:
                 continue
             cells[row] = f"{pad}{line}{RESET}" if line else ""
-        for row, cell in band_cells:
+        for row, cell in hud_cells + band_cells:
             cells[row] = cell
         full = self.size != (width, height)
         parts = [_SYNC_ON]
@@ -1503,12 +1543,12 @@ def restore_terminal(reset):
     os._exit(0)
 
 
-def run(render, interval):
-    messages, names, source, protips = parse_invocation()
+def run(render, _interval):
+    messages, names, source, protips, hud_side = parse_invocation()
     status = Messages(messages)
     tips = Tips(protips)
     reasoning = Reasoning(source, names)
-    display = Display()
+    display = Display(hud_side)
 
     def restore(*_):
         restore_terminal(RESET)
@@ -1525,8 +1565,6 @@ def run(render, interval):
     sys.stdout.write(hidden + "\n")
     sys.stdout.flush()
     start = time.monotonic()
-    pace = interval if callable(interval) else None
-    pause = 0 if pace else interval
     write = sys.stdout.write
     flush = sys.stdout.flush
     mono = time.monotonic
@@ -1534,11 +1572,18 @@ def run(render, interval):
     lines = status.lines
     count = len(lines)
     origin = status.start
-    thinking_width = 0
+    fps = 0.0
+    frame_at = start
+    next_at = start
     while True:
         if quit_requested():
             restore()
         now = mono()
+        dt = now - frame_at
+        frame_at = now
+        if dt > 0.001:
+            inst = 1.0 / dt
+            fps = inst if fps <= 0.0 else fps * 0.85 + inst * 0.15
         _refresh_background(now)
         elapsed = now - start
         size = getsize((80, 24))
@@ -1550,24 +1595,23 @@ def run(render, interval):
             reasoning_limit(size.lines, size.columns, tip),
         )
         shown = fade_ansi(render(elapsed, lines[(origin + slot) % count]), alpha)
-        shown_width = _text_cols(shown)
-        if shown_width:
-            thinking_width = shown_width
-        elif thinking_width:
-            # Keep the token count in the same column while the spinner line
-            # is fully faded out between status scripts.
-            shown = " " * thinking_width
+        tokens = fade_ansi(token_text(reasoning.token_count(_tick(elapsed))), alpha)
         frame = display.render(
             shown,
-            token_text(reasoning.token_count(_tick(elapsed))),
+            tokens,
             tip,
             above,
             reasoning.limit,
             size,
             tip_fade_alpha(elapsed),
+            fps,
         )
         if frame:
             write(frame)
             flush()
-        # A number, or a callable so the active script can change the pace.
-        time.sleep(pace() if pace else pause)
+        next_at += _FRAME
+        delay = next_at - mono()
+        if delay > 0:
+            time.sleep(delay)
+        else:
+            next_at = mono()

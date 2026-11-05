@@ -67,7 +67,7 @@ pane-tmux-side() {
   tmux select-pane -t "$target"
 }
 
-pane-tmux-side "$side" "$focus" "$HOME/.script/thinking_base.py" "$messages" "$names" "$reasoning" "$protips"
+pane-tmux-side "$side" "$focus" "$HOME/.script/thinking_base.py" "$messages" "$names" "$reasoning" "$protips" "$side"
 
 # Linux is a managed device: it runs drift in the foreground and never
 # watches the pointer. macOS polls the cursor without Accessibility.
@@ -76,7 +76,7 @@ if [[ ${OSTYPE:-} != darwin* ]]; then
   exit
 fi
 
-drift --scene "$scene" --theme "$theme" --duration 5 &
+drift --scene "$scene" --theme "$theme" --duration 5 --fps 120 &
 drift_pid=$!
 python3 "$HOME/.script/gol.py" "$drift_pid" "${PANE_TMUX_SIDE_PANE:-}" >/dev/null 2>&1 &
 watch_pid=$!
