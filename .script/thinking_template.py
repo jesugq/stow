@@ -66,7 +66,7 @@ FPS_ROWS = 1
 # lives on each spinning_*.py; this is only how often the pane is drawn.
 TARGET_FPS = 120
 _FRAME = 1.0 / TARGET_FPS
-TIP_EVERY = 2
+TIP_EVERY = 4
 # Fade steps. Coarse enough that a row keeps one SGR for several frames,
 # fine enough that the fade still reads as continuous. Steady rows sit on the last step.
 _LEVELS = 16
