@@ -136,8 +136,9 @@ def parse_invocation():
     sits on that edge. When omitted, the counter stays on the right.
     Each {{TEAMMATE}} is replaced, as it is printed, with a random name,
     and that name is drawn in orange.
-    Messages and reasoning each start on a random line and loop.
-    A new tip is chosen at random every TIP_EVERY spinner changes.
+    A new message is chosen at random each spinner change. Reasoning
+    starts on a random line and loops. A new tip is chosen at random
+    every TIP_EVERY spinner changes.
     """
     args = sys.argv[1:]
     if len(args) < 4:
@@ -637,13 +638,28 @@ def fade_ansi(text, alpha):
 
 
 class Messages:
+    """A different status line each spinner change, picked at random."""
+
     def __init__(self, lines):
         self.lines = lines
-        self.start = random.randrange(len(self.lines))
+        self.index = random.randrange(len(lines))
+        self.slot = None
 
     def current(self, elapsed):
-        index = (self.start + scene_slot(elapsed)) % len(self.lines)
-        return self.lines[index]
+        slot = scene_slot(elapsed)
+        if self.slot is not None and slot != self.slot:
+            self._next()
+        self.slot = slot
+        return self.lines[self.index]
+
+    def _next(self):
+        count = len(self.lines)
+        if count < 2:
+            return
+        pick = random.randrange(count - 1)
+        if pick >= self.index:
+            pick += 1
+        self.index = pick
 
 
 class Tips:
@@ -1569,9 +1585,6 @@ def run(render, _interval):
     flush = sys.stdout.flush
     mono = time.monotonic
     getsize = shutil.get_terminal_size
-    lines = status.lines
-    count = len(lines)
-    origin = status.start
     fps = 0.0
     frame_at = start
     next_at = start
@@ -1587,14 +1600,14 @@ def run(render, _interval):
         _refresh_background(now)
         elapsed = now - start
         size = getsize((80, 24))
-        slot, alpha = presentation(elapsed)
+        alpha = fade_alpha(elapsed)
         tip = tips.current(elapsed)
         above = reasoning.advance(
             elapsed,
             size.columns,
             reasoning_limit(size.lines, size.columns, tip),
         )
-        shown = fade_ansi(render(elapsed, lines[(origin + slot) % count]), alpha)
+        shown = fade_ansi(render(elapsed, status.current(elapsed)), alpha)
         tokens = fade_ansi(token_text(reasoning.token_count(_tick(elapsed))), alpha)
         frame = display.render(
             shown,
