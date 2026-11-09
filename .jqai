@@ -2,7 +2,7 @@
 
 ai() {
   [ -n "${ZSH_VERSION:-}" ] && setopt LOCAL_OPTIONS KSH_ARRAYS
-  local csv="$HOME/.local/share/jesugq/ai.csv"
+  local csv="$HOME/.config/stow/.config/ai/providers.csv"
   local -a displays commands labels
   local cmd label reset display selected_display i
 
@@ -35,7 +35,7 @@ ai() {
 
 airld() {
   [ -n "${ZSH_VERSION:-}" ] && setopt LOCAL_OPTIONS KSH_ARRAYS
-  local csv="$HOME/.local/share/jesugq/ai.csv"
+  local csv="$HOME/.config/stow/.config/ai/providers.csv"
   local -a rows displays
   local row cmd label reset display selected_display text tmp i selected_index
 
