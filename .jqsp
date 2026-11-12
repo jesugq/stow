@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-DOCKER_DIR=$HOME/Development/docker-dev
 BACKEND_APP=simplepractice
 FRONTEND_APP=simplepractice-frontend
 SSO_APP=sp-sso-account
@@ -10,30 +9,6 @@ function macos() {
     {"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0},
     {"HIDKeyboardModifierMappingSrc":0x700000029,"HIDKeyboardModifierMappingDst":0x7000000E0}
   ]}'
-}
-
-function spdapp() {
-  cd $DOCKER_DIR
-  git pull
-  sp apps:sync
-  sp stop
-  sp start
-}
-
-function spdrld() {
-  cd $DOCKER_DIR
-  git pull
-  sp apps:sync
-}
-
-function spdaws() {
-  cd $DOCKER_DIR
-  aws sso login --profile staging
-}
-
-function spdssh() {
-  cd $DOCKER_DIR
-  ssh-add $HOME/.ssh/id_ed25519
 }
 
 function spbrspec() {
