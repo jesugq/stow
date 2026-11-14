@@ -49,7 +49,7 @@ CHAR_STAGGER = LINE_FADE / FADE_CHARS
 # default fade is 0.3s out and 0.3s in, and the next scene is swapped in
 # at black. Later scenes count the fade-in toward the hold, so fades
 # then begin hold-plus-one-fade apart.
-DRIFT_HOLD = 5
+DRIFT_HOLD = 10
 DRIFT_FADE = 0.3
 # Band under the reasoning. Two blank rows, then the thinking line with
 # the token count two spaces after it, then the tip, then two blank rows.
@@ -66,7 +66,7 @@ FPS_ROWS = 1
 # lives on each spinning_*.py; this is only how often the pane is drawn.
 TARGET_FPS = 120
 _FRAME = 1.0 / TARGET_FPS
-TIP_EVERY = 4
+TIP_EVERY = 3
 # Fade steps. Coarse enough that a row keeps one SGR for several frames,
 # fine enough that the fade still reads as continuous. Steady rows sit on the last step.
 _LEVELS = 16
