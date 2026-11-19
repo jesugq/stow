@@ -35,8 +35,8 @@ config.window_padding = { left = '8px', right = '8px', top = '0px', bottom = '0p
 
 -- keyd support
 add_keybindings(keys, {
-  { key = 'PageUp', mods = 'CTRL', action = wezterm.action.SendString '\x1b[5;5~' },
-  { key = 'PageDown', mods = 'CTRL', action = wezterm.action.SendString '\x1b[6;5~' },
+  { key = 'Tab', mods = 'CTRL', action = wezterm.action.SendString '\x1b[9;5u' },
+  { key = 'Tab', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[9;6u' },
 })
 
 -- linux support

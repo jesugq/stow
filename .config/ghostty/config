@@ -12,8 +12,8 @@ window-padding-y = 0
 adjust-cell-height = +5%
 
 # keyd support
-keybind = ctrl+page_up=csi:5;5~
-keybind = ctrl+page_down=csi:6;5~
+keybind = ctrl+tab=csi:9;5u
+keybind = ctrl+shift+tab=csi:9;6u
 
 # linux support
 keybind = alt+enter=csi:13;3u
