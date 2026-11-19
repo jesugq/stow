@@ -19,11 +19,11 @@ On create or edit, the line after `$DIR` is `created` or `updated`, then `headin
     [sect] created heading 01, updated headings 02, 03
     [next] /handoff-mode next
     [dutc] Oct 13, 06:47 PM
-    [call] Prompts: 4, Callbacks: 11, Model Calls: 11
+    [call] Prompts: 4, Model Calls: 11
 
 The user-facing message is only those five tagged lines. A file question is the exception: that message is `Which conversation?` and the paths. No ack. No file. No other chat: no prose, code, findings, or summary. Put the work in the file.
 UTC is when the prompt was sent: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone.
-`[call]` is `Prompts: <n>, Callbacks: <n>, Model Calls: <n>`: user prompts in this conversation, then model callbacks, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A callback is one `assistant` line. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current callback is not in the file yet; add one to Callbacks. The current model call is not in the file yet; add one to Model Calls.
+`[call]` is `Prompts: <n>, Model Calls: <n>`: user prompts in this conversation, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current model call is not in the file yet; add one to Model Calls.
 
 While `CLARIFY` exists, a turn that opens, updates, or resolves an ambiguity edits `$DIR/02-CLARIFY.md`. Create it only when it is absent. One ambiguity per heading. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

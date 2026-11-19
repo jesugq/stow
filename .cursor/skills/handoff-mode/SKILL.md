@@ -19,11 +19,11 @@ On create or edit, the line after `$DIR` is `created` or `updated`, then `headin
     [sect] created heading 01, updated headings 02, 03
     [next] /prepare-mode next
     [dutc] Oct 13, 06:47 PM
-    [call] Prompts: 4, Callbacks: 11, Model Calls: 11
+    [call] Prompts: 4, Model Calls: 11
 
 The user-facing message is only those five tagged lines. A file question is the exception: that message is `Which conversation?` and the paths. No ack. No file. No other chat: no prose, code, findings, or summary. Put the work in the file.
 UTC is when the prompt was sent: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone.
-`[call]` is `Prompts: <n>, Callbacks: <n>, Model Calls: <n>`: user prompts in this conversation, then model callbacks, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A callback is one `assistant` line. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current callback is not in the file yet; add one to Callbacks. The current model call is not in the file yet; add one to Model Calls.
+`[call]` is `Prompts: <n>, Model Calls: <n>`: user prompts in this conversation, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current model call is not in the file yet; add one to Model Calls.
 
 Do not implement. Do not re-investigate the codebase. While `HANDOFF` exists, create `$DIR/03-HANDOFF.md` when it is absent, including the toggle turn. A later agree or revise edits it. Read `$DIR/02-CLARIFY.md` and write each pin whose first line is `Resolved` into the intention it belongs to. Do not reopen it or list rejected options. "Yes", "OK", "Looks good", and "Do it" accept the discussed intentions and are writes. A revision changes only the intentions the user changed. Tool-only turns write nothing.
 

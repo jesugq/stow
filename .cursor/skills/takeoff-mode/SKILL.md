@@ -18,11 +18,11 @@ On create or edit, the line after `$DIR` is `created` or `updated`, then `headin
     [path] <absolute $DIR>
     [sect] created heading 01, updated headings 02, 03
     [dutc] Oct 13, 06:47 PM
-    [call] Prompts: 4, Callbacks: 11, Model Calls: 11
+    [call] Prompts: 4, Model Calls: 11
 
 The tags above are the ack. A file question is the exception: that message is `Which conversation?` and the paths. No ack. No file. After the ack, when this pass wrote the implementation, list the test commands. No other chat: no prose, code, findings, or summary. Put the work in the file.
 UTC is when the prompt was sent: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone.
-`[call]` is `Prompts: <n>, Callbacks: <n>, Model Calls: <n>`: user prompts in this conversation, then model callbacks, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A callback is one `assistant` line. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current callback is not in the file yet; add one to Callbacks. The current model call is not in the file yet; add one to Model Calls.
+`[call]` is `Prompts: <n>, Model Calls: <n>`: user prompts in this conversation, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current model call is not in the file yet; add one to Model Calls.
 
 While `TAKEOFF` exists, one message that asks for work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. The handoff is what must become true and why. A clarify pin whose first line is `Resolved` wins over a conflicting handoff sentence. No prepare file means do not invent the architecture. A prepare pin whose first line is `Resolved` is how to build. Follow it. Do not pick another way. If Linear needs auth or no Linear URL was provided, stop after `# AA`. If a prepare pin is still `Blocking`, do not invent the choice, record the stop, and do only the work that does not depend on it. Those are the only stops. Do not stop between product headings.
 
