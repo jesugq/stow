@@ -34,31 +34,10 @@ config.font_size = 24.0
 config.window_content_alignment = { horizontal = 'Center', vertical = 'Center', }
 config.window_padding = { left = '8px', right = '8px', top = '0px', bottom = '0px', }
 
--- keyd support
-add_keybindings(keys, {
-  { key = 'Tab', mods = 'CTRL', action = wezterm.action.SendString '\x1b[9;5u' },
-  { key = 'Tab', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[9;6u' },
-})
-
 -- linux support
 add_keybindings(keys, {
   { key = 'Enter', mods = 'CTRL', action = wezterm.action.SendString '\x1b[13;5u' },
   { key = 'Enter', mods = 'ALT', action = wezterm.action.SendString '\x1b[13;3u' },
-})
-
--- hammerspoon support
--- for i = #keys, 1, -1 do
---   local key = (keys[i].key or ''):gsub('^mapped:', '')
---   local mods = keys[i].mods
---   if (key == '{' or key == '}') and (mods == 'SUPER' or mods == 'SHIFT|SUPER') then
---     table.remove(keys, i)
---   end
--- end
-add_keybindings(keys, {
-  -- { key = '{', mods = 'SUPER', action = wezterm.action.SendString '\x1b[123;3u' },
-  -- { key = '}', mods = 'SUPER', action = wezterm.action.SendString '\x1b[125;3u' },
-  { key = '{', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[123;3u' },
-  { key = '}', mods = 'SUPER|SHIFT', action = wezterm.action.SendString '\x1b[125;3u' },
 })
 
 -- macos support

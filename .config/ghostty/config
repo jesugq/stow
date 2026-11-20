@@ -12,17 +12,9 @@ window-padding-x = 4
 window-padding-y = 0
 # adjust-cell-height = +5%
 
-# keyd support
-keybind = ctrl+tab=csi:9;5u
-keybind = ctrl+shift+tab=csi:9;6u
-
 # linux support
 keybind = alt+enter=csi:13;3u
 keybind = ctrl+enter=csi:13;5u
-
-# hammerspoon support
-keybind = super+shift+left_bracket=csi:123;3u
-keybind = super+shift+right_bracket=csi:125;3u
 
 # macos support
 keybind = super+h=csi:104;9u
