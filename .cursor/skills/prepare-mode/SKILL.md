@@ -6,28 +6,25 @@ disable-model-invocation: true
 
 # Prepare mode
 
-The argument is the word immediately after `/prepare-mode`. `load` and `next` are accepted. Anything else, including no word, refuses. The message is `/prepare-mode load` or `/prepare-mode next`. No ack. No file. No folder. `load` finds `04-PREPARE.md` under `~/.cursor/dynamic-mode`. One file: its directory is `$DIR`. More than one: ask which conversation. The message is `Which conversation?` and the absolute paths, each in backticks. No ack. No file write. Stop. The reply picks one path. Then that file's directory is `$DIR` and setup continues. No file: refuse. Do not create a folder. `next` uses the folder this conversation already set. Do not scan. `03-HANDOFF.md` must be in that folder. It missing refuses. No ack. No file. No folder yet: find `03-HANDOFF.md` under `~/.cursor/dynamic-mode`. One file: its directory is `$DIR`. More than one: refuse. The message is the absolute paths, each in backticks. No ack. No file. Stop. Do not ask `Which conversation?`. No file: refuse. Do not create a folder. Once `$DIR` is set, read the mode files that are present once and continue from them. Do not read another conversation's transcript. Order: analyze → clarify → handoff → prepare → takeoff. This mode's only file is `$DIR/04-PREPARE.md`. The others are `$DIR/01-ANALYZE.md`, `$DIR/02-CLARIFY.md`, `$DIR/03-HANDOFF.md`, `$DIR/05-TAKEOFF.md`.
-On iff `$DIR/PREPARE` exists (zero-byte) and `ANALYZE`, `CLARIFY`, and `TAKEOFF` do not. Those three are the other mode sentinels; mutually exclusive with this mode. Keep `HANDOFF`; do not delete it. A mode command may sit anywhere in the message. If more than one of `/analyze-mode`, `/clarify-mode`, `/handoff-mode`, `/prepare-mode`, or `/takeoff-mode` appears, the last one is the mode for the whole message. Its argument is the one that is checked. Switch the sentinel first, using the swap rules already in that skill, then follow the new mode for the rest of that same message. Do not stop after creating the sentinel. A message that is only the mode command and an accepted argument sets the sentinel and prints the ack. It does not write the markdown. The turn that sets `$DIR` leaves an existing `PREPARE` in place and creates it when absent. Swap deletes `ANALYZE`, `CLARIFY`, or `TAKEOFF` and creates `PREPARE`. Do not delete the markdown. When the last command is not `/prepare-mode`, do not write this mode's file and do not print the ack.
+Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 
-H1 only. No frontmatter. No JSON. The first heading starts the file. Blank line after every heading and before every later one. Headings are `# 01 <5-10 word choice>`, then `02`, `03`, in order. A heading keeps its number while it stays. When referring to a file, use one of two: a file in the agent cwd is `lua/libfuns/context.lua:26` (relative, colon, line on the right); a file outside that cwd is its absolute path, colon, line on the right; never `../`. A range is `file.rb:36-53`. Never put the line before the path (`26:file`, `36:53:file`). Keep each path in backticks so neovim `` yi` `` selects them; the cite for a fenced quote is that same backtick path, not the fence language. Quote source inline if it is one line, in a fenced block if it is larger; never as bare lines. Open a fence with backticks only; the first line inside is source.
+```
+verb: load | next
+root: ~/.cursor/dynamic-mode
+sentinel: PREPARE
+drop: ANALYZE,CLARIFY,TAKEOFF
+load: 04-PREPARE.md
+need: 03-HANDOFF.md
+mark: HANDOFF
+then: /takeoff-mode next
+sect: heading
+```
 
-A tool result already in the conversation is the file contents. Do not Read that path again. Re-read only when this conversation has edited that file since the last read and a later step needs the new contents, or the user says the file changed outside this conversation. After a successful StrReplace or Write, do not Read the file to confirm it. Do not re-read `$DIR/01-ANALYZE.md`, `$DIR/02-CLARIFY.md`, `$DIR/03-HANDOFF.md`, `$DIR/04-PREPARE.md`, or `$DIR/05-TAKEOFF.md` before each edit. Read each of them at most once per user message. Do not Read `SKILL.md` to resume a mode. To find a symbol, Grep first and Read only that line range. Do not read a large file to locate a few lines.
+`load` and `next` are accepted. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
 
-On create or edit, the line after `$DIR` is `created` or `updated`, then `heading` or `headings`, then the numbers whose body was written (`created heading 01`, `updated headings 02, 03`). One number uses `heading`. More than one uses `headings`. A turn that both creates and updates lists created first, then updated (`created heading 01, updated headings 02, 03`). Omit that line when no heading changed.
+Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
-    [path] <absolute $DIR>
-    [sect] created heading 01, updated headings 02, 03
-    [next] /takeoff-mode next
-    [dutc] Oct 13, 06:47 PM
-    [call] Prompts: 4, Model Calls: 11
-
-The user-facing message is only those five tagged lines. A file question is the exception: that message is `Which conversation?` and the paths. No ack. No file. No other chat: no prose, code, findings, or summary. Put the work in the file.
-UTC is when the prompt was sent: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone.
-`[call]` is `Prompts: <n>, Model Calls: <n>`: user prompts in this conversation, then model calls. Count `user` lines and `assistant` lines in `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. Include this message. A model call is one assistant turn, one invocation that resends the conversation. A `tool_use` inside that line is not another model call. The current model call is not in the file yet; add one to Model Calls.
-
-Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits `$DIR/04-PREPARE.md`. Create it only when it is absent. One choice per heading. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
-
-Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md`. The handoff is what must become true and why. A clarify pin whose first line is `Resolved` is closed; do not reopen it. The prepare file is the board; absent means no pins. Look at the codebase only to see which existing way would satisfy the handoff.
+Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md`. The handoff is what must become true and why. A clarify pin whose first line is `Resolved` is closed. Do not reopen it. The prepare file is the board. Absent means no pins. Look at the codebase only to see which existing way would satisfy the handoff.
 
 A new pin is a way of building the handoff leaves open that would change what takeoff edits. Do not pin a product intention, or a choice the handoff or a closed clarify decision already settles. No handoff file means no new pins.
 
