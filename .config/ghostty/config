@@ -3,13 +3,14 @@ theme = Ryuuko
 
 # font
 font-family = "Maple Mono NF"
-font-size = 18.0
+# font-size = 18.0
+font-size = 24.0
 
 # window
 window-padding-balance = true
 window-padding-x = 4
 window-padding-y = 0
-adjust-cell-height = +5%
+# adjust-cell-height = +5%
 
 # keyd support
 keybind = ctrl+tab=csi:9;5u
