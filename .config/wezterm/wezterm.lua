@@ -55,6 +55,12 @@ add_keybindings(keys, {
   { key = 'v', mods = 'CTRL|SHIFT', action = wezterm.action.PasteFrom 'Clipboard' },
 })
 
+-- wezterm support
+add_keybindings(keys, {
+  { key = 'PageDown', mods = 'CTRL', action = wezterm.action.SendKey { key = 'PageDown', mods = 'CTRL' } },
+  { key = 'PageUp', mods = 'CTRL', action = wezterm.action.SendKey { key = 'PageUp', mods = 'CTRL' } },
+})
+
 config.keys = keys
 return config
 
