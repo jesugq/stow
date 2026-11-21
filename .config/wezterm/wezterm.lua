@@ -27,8 +27,8 @@ config.font_rules = {
   { intensity = 'Bold', italic = false, font = wezterm.font({ family = 'Maple Mono NF', weight = 'Bold' }) },
   { intensity = 'Bold', italic = true, font = wezterm.font({ family = 'Maple Mono NF', weight = 'Bold', style = 'Italic' }) },
 }
--- config.font_size = 18.0
 config.font_size = 24.0
+-- config.font_size = 18.0
 
 -- window
 config.window_content_alignment = { horizontal = 'Center', vertical = 'Center', }
