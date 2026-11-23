@@ -1,6 +1,6 @@
 ---
 name: takeoff-mode
-description: /takeoff-mode load or next.
+description: /takeoff-mode load, next, or then.
 disable-model-invocation: true
 ---
 
@@ -9,7 +9,7 @@ disable-model-invocation: true
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 
 ```
-verb: load | next
+verb: load | next | then
 root: ~/.cursor/dynamic-mode
 sentinel: TAKEOFF
 drop: ANALYZE,CLARIFY
@@ -20,7 +20,7 @@ then:
 sect: heading
 ```
 
-`load` and `next` are accepted. This mode's file is `$DIR/05-TAKEOFF.md`. Keep `PREPARE` and `HANDOFF`.
+`load`, `next`, and `then` are accepted. This mode's file is `$DIR/05-TAKEOFF.md`. Keep `PREPARE` and `HANDOFF`.
 
 While `TAKEOFF` exists, one message that asks for work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. The handoff is what must become true and why. A clarify pin whose first line is `Resolved` wins over a conflicting handoff sentence. No prepare file means do not invent the architecture. A prepare pin whose first line is `Resolved` is how to build. Follow it. Do not pick another way. If Linear needs auth or no Linear URL was provided, stop after `# AA`. If a prepare pin is still `Blocking`, do not invent the choice, record the stop, and do only the work that does not depend on it. Those are the only stops. Do not stop between product headings.
 

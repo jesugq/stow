@@ -1,6 +1,6 @@
 ---
 name: markdown-mode
-description: /markdown-mode new, load, or next.
+description: /markdown-mode new, load, next, or then.
 disable-model-invocation: true
 ---
 
@@ -8,14 +8,14 @@ disable-model-invocation: true
 
 `CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
 
-`/markdown-mode new`, `/markdown-mode load`, and `/markdown-mode next` run it with the direct parameters. `new` creates a folder. `load` opens an existing folder. `next` follows the sentinel of the previous mode.
+`/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode then` run it with the direct parameters. `new` creates a folder. `load` opens the absolute folder in the message and requires the `load` file there. `next` stays on the known `$DIR`. `then` opens the absolute folder in the message and requires the previous sentinel there.
 
 ## Parameters
 
 Direct commands use these values. A caller replaces the ones it names.
 
 ```
-verb: new | load | next
+verb: new | load | next | then
 root: ~/.cursor/markdown-mode
 sentinel: MARKDOWN
 drop: -
@@ -26,15 +26,19 @@ then:
 sect: file
 ```
 
-`verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
+`verb` is the word immediately after the mode command. `new`, `load`, `next`, and `then` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file `load` searches for. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. `mark` is the previous mode's sentinel that `next` searches for when this conversation has no folder yet. `then` is the text of the `[next]` line. Empty omits that line. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `then` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `then` requires. The `then` line is the text of the `[next]` ack. Empty omits that line. `sect` is `file` or `heading`.
 
-When the message is only the mode command and an accepted verb, follow Common and Only the command, then stop. Do not read Work. Any other message that asks for an answer follows Common and Work. Do not write markdown for a message that is only the command, including when the caller's skill describes a file.
+`load` and the verb `then` take one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
+
+`next` is allowed only when this conversation already has an absolute `$DIR`. That known path is the check. `new` or `load` on any mode leaves it, and so does a `[path]` line already in the conversation. Do not read the transcript to learn which verb ran. `next` takes no folder. A path written beside this `next` does not count. No known `$DIR`: pass `-` as `dir`. The verb `then` does not use that known path. It uses the folder in the message, and it looks for `mark`, not for the `load` file.
+
+When the message is only the mode command, an accepted verb, and the folder a `load` or verb `then` requires, follow Common and Only the command, then stop. Do not read Work. Any other message that asks for an answer follows Common and Work. Do not write markdown for a message that is only the command, including when the caller's skill describes a file.
 
 If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/analyze-mode`, `/clarify-mode`, `/handoff-mode`, `/prepare-mode`, or `/takeoff-mode`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
-A folder this conversation already set stays `$DIR` until a later `new` or `load`. `next` keeps that folder and does not scan.
+A folder this conversation already set stays `$DIR` until a later `new`, `load`, or verb `then`. `next` keeps that folder.
 
 ## Common
 
@@ -46,7 +50,7 @@ The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentin
 
 One shell. Do not list the environment. Do not Read the transcript jsonl. Do not scan line bodies. Count a line only when its top-level JSON `role` is `user` or `assistant`. A `tool_use` inside a line is not another line. The transcript is `$AGENT_TRANSCRIPTS/$CURSOR_CONVERSATION_ID/$CURSOR_CONVERSATION_ID.jsonl`. A missing file is 0 and 0.
 
-Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark`, `drop`. `kind` is `new`, `load`, `next`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the absolute `$DIR` already set, otherwise `-`. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, or `next`.
+Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark`, `drop`. `kind` is `new`, `load`, `next`, `then`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the absolute folder for `load` and `then`, the known `$DIR` for `next` and `count`, and `-` for `new`. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, `next`, or `then`.
 
 ```
 import json, os, sys
@@ -103,10 +107,30 @@ def has_mark(d):
     f = d / mark
     return f.is_file() and f.stat().st_size == 0
 
-def hits(pred):
-    if not root.is_dir():
-        return []
-    return sorted(p for p in root.iterdir() if p.is_dir() and pred(p))
+def folder_arg(s):
+    if not s.startswith("/"):
+        return None
+    d = Path(s)
+    name = d.name
+    if not (
+        len(name) > 11
+        and name[4] == "-"
+        and name[7] == "-"
+        and name[10] == "-"
+        and name[:4].isdigit()
+        and name[5:7].isdigit()
+        and name[8:10].isdigit()
+        and name[11:]
+    ):
+        return None
+    try:
+        if d.parent.resolve() != root.resolve():
+            return None
+    except Exception:
+        return None
+    if not d.is_dir():
+        return None
+    return d
 
 def finish(d):
     if not cid:
@@ -143,32 +167,23 @@ elif kind == "count":
     else:
         finish(d)
 elif kind == "load":
-    found = hits(lambda d: named(d, load))
-    if len(found) == 1:
-        finish(found[0])
-    elif not found:
+    d = folder_arg(dir_s)
+    if d is not None and named(d, load):
+        finish(d)
+    else:
         print("refused")
+elif kind == "then":
+    d = folder_arg(dir_s)
+    if d is not None and has_mark(d) and named(d, need):
+        finish(d)
     else:
-        print("which")
-        for p in found:
-            print(p.resolve())
+        print("refused")
 elif kind == "next":
-    if dir_s != "-":
-        d = Path(dir_s).expanduser()
-        if d.is_dir() and named(d, need):
-            finish(d)
-        else:
-            print("refused")
+    d = Path(dir_s)
+    if dir_s.startswith("/") and d.is_dir() and named(d, need):
+        finish(d)
     else:
-        found = hits(lambda d: has_mark(d) and named(d, need))
-        if len(found) == 1:
-            finish(found[0])
-        elif not found:
-            print("refused")
-        else:
-            print("paths")
-            for p in found:
-                print(p.resolve())
+        print("refused")
 else:
     print("refused")
 ```
@@ -176,11 +191,9 @@ else:
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `which` — the remaining lines are absolute paths. The message is `Which conversation?` and those paths, each in backticks. No ack. No file. Stop. The user's reply picks one path. That path is `$DIR`. The next shell is `count` with that `dir` and the same parameters.
-- `paths` — the remaining lines are absolute paths. Print those paths, each in backticks. No ack. No file. Do not ask `Which conversation?`. Stop.
 - `ok` — line 2 is the absolute `$DIR`, line 3 the raw user count, line 4 the raw assistant count.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` searches `root` for `load` and creates no folder when nothing matches. `next` with `dir` set uses it, does not scan, and requires `need` when `need` is not `-`. `next` with no `dir` searches `root` for a zero-byte `mark`, and for `need` when `need` is not `-`. One match sets `$DIR`. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `then` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. A raw assistant count above 0 is earlier rounds of this prompt. Prompts is the number of user messages in this conversation, including the one being answered. When the raw user count is higher, Prompts is the raw user count. Model Calls is the raw assistant count plus 2. The shell invocation is already in the file. The speaking message is the current call. A model call is one assistant invocation. A `tool_use` inside it is not another model call.
 
@@ -196,7 +209,7 @@ The user-facing message is only the ack. Omit `[sect]` when this speaking messag
 
 ## Only the command
 
-Run the shell once. The speaking message prints the ack, `refused`, `Which conversation?`, or the `paths` list. It writes no markdown. It deletes nothing.
+Run the shell once. The speaking message prints the ack or `refused`. It writes no markdown. It deletes nothing.
 
 Stop.
 
