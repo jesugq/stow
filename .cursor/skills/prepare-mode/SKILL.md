@@ -1,6 +1,6 @@
 ---
 name: prepare-mode
-description: /prepare-mode load, next, or then. Next: /takeoff-mode next.
+description: /prepare-mode load, next, or join. Next: /takeoff-mode next.
 disable-model-invocation: true
 ---
 
@@ -9,18 +9,18 @@ disable-model-invocation: true
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 
 ```
-verb: load | next | then
+verb: load | next | join
 root: ~/.cursor/dynamic-mode
 sentinel: PREPARE
 drop: ANALYZE,CLARIFY,TAKEOFF
 load: 04-PREPARE.md
 need: 03-HANDOFF.md
 mark: HANDOFF
-then: /takeoff-mode next
+step: /takeoff-mode next
 sect: heading
 ```
 
-`load`, `next`, and `then` are accepted. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
+`load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
 
 Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

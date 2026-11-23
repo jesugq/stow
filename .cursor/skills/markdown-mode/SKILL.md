@@ -1,6 +1,6 @@
 ---
 name: markdown-mode
-description: /markdown-mode new, load, next, or then.
+description: /markdown-mode new, load, next, or join.
 disable-model-invocation: true
 ---
 
@@ -8,37 +8,37 @@ disable-model-invocation: true
 
 `CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
 
-`/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode then` run it with the direct parameters. `new` creates a folder. `load` opens the absolute folder in the message and requires the `load` file there. `next` stays on the known `$DIR`. `then` opens the absolute folder in the message and requires the previous sentinel there.
+`/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode join` run it with the direct parameters. `new` creates a folder. `load` opens the absolute folder in the message and requires the `load` file there. `next` stays on the known `$DIR`. `join` opens the absolute folder in the message and requires the previous sentinel there.
 
 ## Parameters
 
 Direct commands use these values. A caller replaces the ones it names.
 
 ```
-verb: new | load | next | then
+verb: new | load | next | join
 root: ~/.cursor/markdown-mode
 sentinel: MARKDOWN
 drop: -
 load: NN
 need: -
 mark: MARKDOWN
-then:
+step:
 sect: file
 ```
 
-`verb` is the word immediately after the mode command. `new`, `load`, `next`, and `then` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
+`verb` is the word immediately after the mode command. `new`, `load`, `next`, and `join` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `then` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `then` requires. The `then` line is the text of the `[next]` ack. Empty omits that line. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `step` line is the text of the `[step]` ack. Empty omits that line. `sect` is `file` or `heading`.
 
-`load` and the verb `then` take one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
+`load` and the verb `join` take one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
 
-`next` is allowed only when this conversation already has an absolute `$DIR`. That known path is the check. `new` or `load` on any mode leaves it, and so does a `[path]` line already in the conversation. Do not read the transcript to learn which verb ran. `next` takes no folder. A path written beside this `next` does not count. No known `$DIR`: pass `-` as `dir`. The verb `then` does not use that known path. It uses the folder in the message, and it looks for `mark`, not for the `load` file.
+`next` is allowed only when this conversation already has an absolute `$DIR`. That known path is the check. `new` or `load` on any mode leaves it, and so does a `[path]` line already in the conversation. Do not read the transcript to learn which verb ran. `next` takes no folder. A path written beside this `next` does not count. No known `$DIR`: pass `-` as `dir`. The verb `join` does not use that known path. It uses the folder in the message, and it looks for `mark`, not for the `load` file.
 
-When the message is only the mode command, an accepted verb, and the folder a `load` or verb `then` requires, follow Common and Only the command, then stop. Do not read Work. Any other message that asks for an answer follows Common and Work. Do not write markdown for a message that is only the command, including when the caller's skill describes a file.
+When the message is only the mode command, an accepted verb, and the folder a `load` or verb `join` requires, follow Common and Only the command, then stop. Do not read Work. Any other message that asks for an answer follows Common and Work. Do not write markdown for a message that is only the command, including when the caller's skill describes a file.
 
 If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/analyze-mode`, `/clarify-mode`, `/handoff-mode`, `/prepare-mode`, or `/takeoff-mode`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
-A folder this conversation already set stays `$DIR` until a later `new`, `load`, or verb `then`. `next` keeps that folder.
+A folder this conversation already set stays `$DIR` until a later `new`, `load`, or verb `join`. `next` keeps that folder.
 
 ## Common
 
@@ -54,23 +54,23 @@ One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-m
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <mark> <drop>
 ```
 
-Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark`, `drop`. `kind` is `new`, `load`, `next`, `then`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the absolute folder for `load` and `then`, the known `$DIR` for `next` and `count`, and `-` for `new`. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, `next`, or `then`.
+Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark`, `drop`. `kind` is `new`, `load`, `next`, `join`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the absolute folder for `load` and `join`, the known `$DIR` for `next` and `count`, and `-` for `new`. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, `next`, or `join`.
 
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
 - `ok` — line 2 is the absolute `$DIR`, line 3 the raw user count, line 4 the raw assistant count.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `then` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. A raw assistant count above 0 is earlier rounds of this prompt. Prompts is the number of user messages in this conversation, including the one being answered. When the raw user count is higher, Prompts is the raw user count. Model Calls is the raw assistant count plus 2. The shell invocation is already in the file. The speaking message is the current call. A model call is one assistant invocation. A `tool_use` inside it is not another model call.
 
-The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Omit `[next]` when `then` is empty. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
+The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Omit `[step]` when `step` is empty. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
 
 ```
 [path] <absolute $DIR>
 [sect] created heading 01, updated headings 02, 03
-[next] /clarify-mode next
+[step] /clarify-mode next
 [dutc] Oct 13, 06:47 PM
 [call] Prompts: 4, Model Calls: 11
 ```

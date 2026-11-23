@@ -118,7 +118,7 @@ elif kind == "load":
         finish(d)
     else:
         print("refused")
-elif kind == "then":
+elif kind == "join":
     d = folder_arg(dir_s)
     if d is not None and has_mark(d) and named(d, need):
         finish(d)

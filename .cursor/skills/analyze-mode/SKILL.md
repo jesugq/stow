@@ -16,7 +16,7 @@ drop: CLARIFY,HANDOFF,PREPARE,TAKEOFF
 load: 01-ANALYZE.md
 need: -
 mark: -
-then: /clarify-mode next
+step: /clarify-mode next
 sect: heading
 ```
 

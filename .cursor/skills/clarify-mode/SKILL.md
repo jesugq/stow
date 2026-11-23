@@ -1,6 +1,6 @@
 ---
 name: clarify-mode
-description: /clarify-mode load, next, or then. Next: /handoff-mode next.
+description: /clarify-mode load, next, or join. Next: /handoff-mode next.
 disable-model-invocation: true
 ---
 
@@ -9,18 +9,18 @@ disable-model-invocation: true
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 
 ```
-verb: load | next | then
+verb: load | next | join
 root: ~/.cursor/dynamic-mode
 sentinel: CLARIFY
 drop: ANALYZE,HANDOFF,PREPARE,TAKEOFF
 load: 02-CLARIFY.md
 need: 01-ANALYZE.md
 mark: ANALYZE
-then: /handoff-mode next
+step: /handoff-mode next
 sect: heading
 ```
 
-`load`, `next`, and `then` are accepted. This mode's file is `$DIR/02-CLARIFY.md`.
+`load`, `next`, and `join` are accepted. This mode's file is `$DIR/02-CLARIFY.md`.
 
 While `CLARIFY` exists, a turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
