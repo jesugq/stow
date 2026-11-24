@@ -36,7 +36,7 @@ sect: file
 
 When the message is only the mode command, an accepted verb, and the folder a `load` or verb `join` requires, follow Common and Only the command, then stop. Do not read Work. Any other message that asks for an answer follows Common and Work. Do not write markdown for a message that is only the command, including when the caller's skill describes a file.
 
-If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/develop-analyze`, `/develop-clarify`, `/develop-handoff`, `/develop-prepare`, or `/develop-execute`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
+If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/develop-analyze`, `/develop-clarify`, `/develop-handoff`, `/develop-prepare`, `/develop-execute`, `/outline-analyze`, `/outline-clarify`, `/outline-handoff`, `/outline-prepare`, or `/outline-execute`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
 A folder this conversation already set stays `$DIR` until a later `new`, `load`, or verb `join`. `next` keeps that folder.
 
