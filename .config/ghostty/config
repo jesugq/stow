@@ -10,8 +10,8 @@ font-size = 24.0
 window-padding-balance = true
 window-padding-x = 8
 window-padding-y = 0
-adjust-cell-height = +0%
-# adjust-cell-height = +5%
+adjust-cell-height = +5%
+# adjust-cell-height = +0%
 
 # linux support
 keybind = alt+enter=csi:13;3u
