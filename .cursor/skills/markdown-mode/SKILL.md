@@ -1,6 +1,6 @@
 ---
 name: markdown-mode
-description: /markdown-mode new, load, next, or join.
+description: "/markdown-mode new, load, next, or join."
 disable-model-invocation: true
 ---
 

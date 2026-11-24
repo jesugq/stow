@@ -1,6 +1,6 @@
 ---
 name: dialogue-mode
-description: /dialogue-mode new, load, next, or join. One conversation file.
+description: "/dialogue-mode new, load, next, or join. One conversation file."
 disable-model-invocation: true
 ---
 

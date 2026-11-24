@@ -1,6 +1,6 @@
 ---
 name: plan-execute
-description: /plan-execute load, next, or join.
+description: "/plan-execute load, next, or join."
 disable-model-invocation: true
 ---
 

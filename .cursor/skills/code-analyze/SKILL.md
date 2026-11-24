@@ -1,6 +1,6 @@
 ---
 name: code-analyze
-description: /code-analyze new or load. Next: /code-clarify next.
+description: "/code-analyze new or load. Next: /code-clarify next."
 disable-model-invocation: true
 ---
 

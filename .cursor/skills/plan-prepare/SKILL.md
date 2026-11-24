@@ -1,6 +1,6 @@
 ---
 name: plan-prepare
-description: /plan-prepare load, next, or join. Next: /plan-execute next.
+description: "/plan-prepare load, next, or join. Next: /plan-execute next."
 disable-model-invocation: true
 ---
 

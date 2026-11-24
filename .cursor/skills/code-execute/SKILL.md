@@ -1,6 +1,6 @@
 ---
 name: code-execute
-description: /code-execute load, next, or join.
+description: "/code-execute load, next, or join."
 disable-model-invocation: true
 ---
 

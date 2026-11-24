@@ -1,6 +1,6 @@
 ---
 name: code-handoff
-description: /code-handoff load, next, or join. Next: /code-prepare next.
+description: "/code-handoff load, next, or join. Next: /code-prepare next."
 disable-model-invocation: true
 ---
 
