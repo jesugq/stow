@@ -1,28 +1,28 @@
 ---
-name: outline-prepare
-description: /outline-prepare load, next, or join. Next: /outline-execute next.
+name: plan-prepare
+description: /plan-prepare load, next, or join. Next: /plan-execute next.
 disable-model-invocation: true
 ---
 
-# Outline prepare mode
+# Plan prepare mode
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
     10|
 ```
 verb: load | next | join
-root: ~/.cursor/outline-mode
-sentinel: OUTLINE_PREPARE
-drop: OUTLINE_ANALYZE,OUTLINE_CLARIFY,OUTLINE_EXECUTE
+root: ~/.cursor/plan-mode
+sentinel: PLAN_PREPARE
+drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_EXECUTE
 load: 04-PREPARE.md
 need: 03-HANDOFF.md
-mark: OUTLINE_HANDOFF
-step: /outline-execute next
+mark: PLAN_HANDOFF
+step: /plan-execute next
     20|sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`.
 
-Do not write the final document in this mode. While `OUTLINE_PREPARE` exists, a turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
+Do not write the final document in this mode. While `PLAN_PREPARE` exists, a turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
 
 Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md`. The handoff is what must become true and why. The prepare file is the writing plan board.
 

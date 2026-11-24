@@ -1,6 +1,6 @@
 ---
-name: develop-analyze
-description: /develop-analyze new or load. Next: /develop-clarify next.
+name: code-analyze
+description: /code-analyze new or load. Next: /code-clarify next.
 disable-model-invocation: true
 ---
 
@@ -16,7 +16,7 @@ drop: CLARIFY,HANDOFF,PREPARE,EXECUTE
 load: 01-ANALYZE.md
 need: -
 mark: -
-step: /develop-clarify next
+step: /code-clarify next
     20|sect: heading
 ```
 

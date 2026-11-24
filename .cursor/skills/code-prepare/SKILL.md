@@ -1,6 +1,6 @@
 ---
-name: develop-prepare
-description: /develop-prepare load, next, or join. Next: /develop-execute next.
+name: code-prepare
+description: /code-prepare load, next, or join. Next: /code-execute next.
 disable-model-invocation: true
 ---
 
@@ -16,7 +16,7 @@ drop: ANALYZE,CLARIFY,EXECUTE
 load: 04-PREPARE.md
 need: 03-HANDOFF.md
 mark: HANDOFF
-step: /develop-execute next
+step: /code-execute next
     20|sect: heading
 ```
 

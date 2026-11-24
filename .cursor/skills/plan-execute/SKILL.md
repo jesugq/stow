@@ -1,28 +1,28 @@
 ---
-name: outline-execute
-description: /outline-execute load, next, or join.
+name: plan-execute
+description: /plan-execute load, next, or join.
 disable-model-invocation: true
 ---
 
-# Outline execute mode
+# Plan execute mode
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
     10|
 ```
 verb: load | next | join
-root: ~/.cursor/outline-mode
-sentinel: OUTLINE_EXECUTE
-drop: OUTLINE_ANALYZE,OUTLINE_CLARIFY
+root: ~/.cursor/plan-mode
+sentinel: PLAN_EXECUTE
+drop: PLAN_ANALYZE,PLAN_CLARIFY
 load: 05-EXECUTE.md
 need: 04-PREPARE.md
-mark: OUTLINE_PREPARE
+mark: PLAN_PREPARE
 step:
     20|sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/05-EXECUTE.md`.
 
-While `OUTLINE_EXECUTE` exists, one message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
+While `PLAN_EXECUTE` exists, one message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
 
 Do not write partial final output in multiple passes unless the user asked for a revision. Create `05-EXECUTE.md` when it is absent. Write it once per pass at the end.
 

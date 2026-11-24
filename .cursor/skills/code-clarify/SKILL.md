@@ -1,6 +1,6 @@
 ---
-name: develop-clarify
-description: /develop-clarify load, next, or join. Next: /develop-handoff next.
+name: code-clarify
+description: /code-clarify load, next, or join. Next: /code-handoff next.
 disable-model-invocation: true
 ---
 
@@ -16,7 +16,7 @@ drop: ANALYZE,HANDOFF,PREPARE,EXECUTE
 load: 02-CLARIFY.md
 need: 01-ANALYZE.md
 mark: ANALYZE
-step: /develop-handoff next
+step: /code-handoff next
     20|sect: heading
 ```
 
