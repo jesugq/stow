@@ -7,6 +7,7 @@ disable-model-invocation: true
 # Markdown mode
 
 `CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
+Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack block or `refused`.
 
 `/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode join` run it with the direct parameters. `new` creates a folder. `load` opens the absolute folder in the message and requires the `load` file there. `next` stays on the known `$DIR`. `join` opens the absolute folder in the message and requires the previous sentinel there.
 

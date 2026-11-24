@@ -7,6 +7,7 @@ disable-model-invocation: true
 # Execute mode
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack block or `refused`.
     10|
 ```
 verb: load | next | join
