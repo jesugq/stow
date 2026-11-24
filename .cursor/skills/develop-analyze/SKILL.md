@@ -1,23 +1,23 @@
 ---
-name: analyze-mode
-description: /analyze-mode new or load. Next: /clarify-mode next.
+name: develop-analyze
+description: /develop-analyze new or load. Next: /develop-clarify next.
 disable-model-invocation: true
 ---
 
 # Analyze mode
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
-
+    10|
 ```
 verb: new | load
 root: ~/.cursor/dynamic-mode
 sentinel: ANALYZE
-drop: CLARIFY,HANDOFF,PREPARE,TAKEOFF
+drop: CLARIFY,HANDOFF,PREPARE,EXECUTE
 load: 01-ANALYZE.md
 need: -
 mark: -
-step: /clarify-mode next
-sect: heading
+step: /develop-clarify next
+    20|sect: heading
 ```
 
 `new` and `load` are accepted. This mode's file is `$DIR/01-ANALYZE.md`.
