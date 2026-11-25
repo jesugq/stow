@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+alias jolt='XDG_CONFIG_HOME="$HOME/.config" jolt'
+
 function yz() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
   XDG_CONFIG_HOME="$HOME/.config" command yazi "$@" --cwd-file="$tmp"
