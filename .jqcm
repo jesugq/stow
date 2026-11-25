@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-function sfm() {
-  somafm
-}
-
 function yz() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
   XDG_CONFIG_HOME="$HOME/.config" command yazi "$@" --cwd-file="$tmp"
