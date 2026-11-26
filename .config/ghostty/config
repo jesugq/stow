@@ -13,6 +13,17 @@ window-padding-y = 0
 adjust-cell-height = +5%
 # adjust-cell-height = +0%
 
+# chrome support
+keybind = super+digit_1=csi:49;9u
+keybind = super+digit_2=csi:50;9u
+keybind = super+digit_3=csi:51;9u
+keybind = super+digit_4=csi:52;9u
+keybind = super+digit_5=csi:53;9u
+keybind = super+digit_6=csi:54;9u
+keybind = super+digit_7=csi:55;9u
+keybind = super+digit_8=csi:56;9u
+keybind = super+digit_9=csi:57;9u
+
 # linux support
 keybind = alt+enter=csi:13;3u
 keybind = ctrl+enter=csi:13;5u

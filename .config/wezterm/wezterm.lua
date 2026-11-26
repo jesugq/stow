@@ -34,6 +34,24 @@ config.font_size = 24.0
 config.window_content_alignment = { horizontal = 'Center', vertical = 'Center', }
 config.window_padding = { left = '8px', right = '8px', top = '0px', bottom = '0px', }
 
+-- chrome support
+for index = #keys, 1, -1 do
+  local binding = keys[index]
+  if binding.mods == 'SUPER' and binding.key >= '1' and binding.key <= '9' and #binding.key == 1 then
+    table.remove(keys, index)
+  end
+end
+local super_window_keys = {}
+for index = 1, 9 do
+  table.insert(super_window_keys, {
+    key = tostring(index),
+    mods = 'SUPER',
+    action = wezterm.action.SendString(string.format('\x1b[%d;9u', 48 + index)),
+  })
+end
+add_keybindings(keys, super_window_keys)
+
+
 -- linux support
 add_keybindings(keys, {
   { key = 'Enter', mods = 'CTRL', action = wezterm.action.SendString '\x1b[13;5u' },
@@ -59,6 +77,8 @@ add_keybindings(keys, {
 add_keybindings(keys, {
   { key = 'PageDown', mods = 'CTRL', action = wezterm.action.SendKey { key = 'PageDown', mods = 'CTRL' } },
   { key = 'PageUp', mods = 'CTRL', action = wezterm.action.SendKey { key = 'PageUp', mods = 'CTRL' } },
+  { key = 'PageDown', mods = 'CTRL|SHIFT', action = wezterm.action.SendKey { key = 'PageDown', mods = 'CTRL|SHIFT' } },
+  { key = 'PageUp', mods = 'CTRL|SHIFT', action = wezterm.action.SendKey { key = 'PageUp', mods = 'CTRL|SHIFT' } },
 })
 
 config.keys = keys
