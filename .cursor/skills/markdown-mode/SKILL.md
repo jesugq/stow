@@ -29,9 +29,9 @@ sect: file
 
 `verb` is the word immediately after the mode command. `new`, `load`, `next`, and `join` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `next` line is the following command in the `[next]` ack. Empty leaves that command blank. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
 
-`load` and the verb `join` take one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
+`load` takes one absolute folder after the verb. The form is `/<mode> load` plus that folder. The verb `join` takes one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
 
 `next` is allowed only when this conversation already has an absolute `$DIR`. That known path is the check. `new` or `load` on any mode leaves it, and so does a `[path]` line already in the conversation. Do not read the transcript to learn which verb ran. `next` takes no folder. A path written beside this `next` does not count. No known `$DIR`: pass `-` as `dir`. The verb `join` does not use that known path. It uses the folder in the message, and it looks for `mark`, not for the `load` file.
 
@@ -49,7 +49,7 @@ The live clock is UTC. The parentheses hold the offset in hours, west when negat
 
 The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentinel whose size is not 0 prints `refused` and writes no markdown.
 
-One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints `[live]` and `[past]`.
+One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints the clock row.
 
 ```
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <mark> <drop>
@@ -60,19 +60,21 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the absolute `$DIR`, line 3 the live clock, a bar, and the prompt ordinal (`Nov 26, 07:02 PM | 08th`), line 4 the past row or `none`.
+- `ok` — line 2 is the absolute `$DIR`, line 3 the clock, a bar, and the prompt ordinal (`Nov 26, 07:02 PM | 08th`).
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown. When line 4 is a past row, it appends that row to `$DIR/99-CURSOR.md`. It does not read that file. A missing file starts with `# Cursor Usage` and a blank line. The appended line is `[` plus the past prompt's ordinal plus `]` plus the past fields, as in `[07th] Nov 26, 07:05 PM | $0.20 | 144.6K | grok-4.7-medium`. A loaded conversation numbers from its own prompts, so a later `[01st]` is appended again.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[live]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. `[past]` is line 4. Do not Read or Write `99-CURSOR.md`. The shell appends it. The script reads the newest usage event for this conversation from the previous user message up to this one. The row is that event's UTC clock, then `chargedCents` divided by 100 (`$0.20`), then `inputTokens` plus `outputTokens` plus `cacheWriteTokens` plus `cacheReadTokens` (`144.6K`), then `model`. Bars separate the four fields. Line 4 is `none` when this prompt is the first or the script has no event. Print line 3 and line 4. Do not compute a second clock. Do not replace `none` with an estimate.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[call]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. Print line 3. Do not compute a second clock.
 
-The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Print `[live]`, `[sect]`, `[past]`, then `[next]`. `[next]` stays. Its first field is `/<mode> load` plus the folder on line 2. A bar and the `next` line follow when that line has text. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
+The user-facing message is only the ack. Print `[call]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]`. `[path]` is `cd`, the folder from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
 
 ```
-[live] Nov 26, 07:02 PM | 08th
-[sect] created heading 01, updated headings 02, 03
-[past] Nov 26, 07:05 PM | $0.20 | 144.6K | grok-4.7-medium
-[next] /code-analyze load /Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10 | /code-clarify next
+[call] Nov 26, 07:02 PM | 08th
+[make] created heading 01
+[edit] updated headings 02, 03
+[next] /code-clarify next
+[load] /code-analyze load /Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10
+[path] cd /Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10 && nvim
 ```
 
 ## Only the command
