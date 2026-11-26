@@ -7,7 +7,7 @@ disable-model-invocation: true
 # Markdown mode
 
 `CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
-Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack block or `refused`.
+Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 
 `/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode join` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name and requires the `load` file there. `next` takes a prompt and stays on the known `$DIR`. `join` takes a folder name and requires the previous sentinel there. A verb with no argument prints `refused` and stops.
 
@@ -68,16 +68,16 @@ The first stdout line decides the reply.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[call]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. Print line 3. Do not compute a second clock.
 
-The user-facing message is only the ack. Print `[call]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]`. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
+The user-facing message is only the ack. Print `[call]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
 
-```
+Example, as plain lines:
+
 [call] Nov 26, 07:02 PM | 08th
 [make] created heading 01
 [edit] updated headings 02, 03
 [next] /code-clarify next
 [load] /code-analyze load 2026-11-23_Passkey_error
 [path] cd ~/.cursor/dynamic-mode/2026-11-23_Passkey_error && nvim
-```
 
 ## Only the command
 
