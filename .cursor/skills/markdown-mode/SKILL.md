@@ -45,11 +45,11 @@ A folder this conversation already set stays `$DIR` until a later `new`, `load`,
 
 The prompt timestamp is local. The folder date is that local calendar date, before the offset is applied. Use the local date of the earliest user message whose timestamp you can see. When `new` is the first user message, the folder date is the current stamp's local date.
 
-The ack clock is UTC. The parentheses hold the offset in hours, west when negative, east when positive. Subtract the offset from the local clock: offset `-6` adds 6 hours, offset `+2` subtracts 2 hours. Roll the day when the clock crosses midnight. Format: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone. A local stamp of Oct 13, 12:47 PM with offset `-6` is `Oct 13, 06:47 PM`.
+The live clock is UTC. The parentheses hold the offset in hours, west when negative, east when positive. Subtract the offset from the local clock: offset `-6` adds 6 hours, offset `+2` subtracts 2 hours. Roll the day when the clock crosses midnight. Format: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone. A local stamp of Oct 13, 12:47 PM with offset `-6` is `Oct 13, 06:47 PM`. The script prints that clock for the current user message.
 
 The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentinel whose size is not 0 prints `refused` and writes no markdown.
 
-One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints the raw counts for `[call]`.
+One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints `[live]` and `[past]`.
 
 ```
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <mark> <drop>
@@ -60,11 +60,11 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the absolute `$DIR`, line 3 the raw user count, line 4 the raw assistant count, line 5 the raw read count.
+- `ok` — line 2 is the absolute `$DIR`, line 3 the live clock, a bar, and the prompt ordinal (`Nov 26, 07:02 PM | 08th`), line 4 the past row or `none`.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown. When line 4 is a past row, it appends that row to `$DIR/99-CURSOR.md`. It does not read that file. A missing file starts with `# Cursor Usage` and a blank line. The appended line is `[` plus the past prompt's ordinal plus `]` plus the past fields, as in `[07th] Nov 26, 07:05 PM | $0.20 | 144.6K | grok-4.7-medium`. A loaded conversation numbers from its own prompts, so a later `[01st]` is appended again.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. A raw assistant count above 0 is earlier rounds of this prompt. User Prompts is the number of user messages in this conversation, including the one being answered. When the raw user count is higher, User Prompts is the raw user count. Model Calls is the raw assistant count plus 2. The shell invocation is already in the file. The speaking message is the current call. A model call is one assistant invocation. A `tool_use` inside it is not another model call. Tokens Read is line 5. The script sums the characters of the transcript text it can see, then divides by 4. That text is user text, assistant text, tool-call names, tool-call inputs, and a tool result when the file stores one. Tokens Read is that integer. It is a rough token count of the conversation text this prompt re-reads. The transcript stores no system prompt and no tool result, so Tokens Read omits both. Print line 5. Do not replace it with your own estimate.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[live]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. `[past]` is line 4. Do not Read or Write `99-CURSOR.md`. The shell appends it. The script reads the newest usage event for this conversation from the previous user message up to this one. The row is that event's UTC clock, then `chargedCents` divided by 100 (`$0.20`), then `inputTokens` plus `outputTokens` plus `cacheWriteTokens` plus `cacheReadTokens` (`144.6K`), then `model`. Bars separate the four fields. Line 4 is `none` when this prompt is the first or the script has no event. Print line 3 and line 4. Do not compute a second clock. Do not replace `none` with an estimate.
 
 The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Omit `[step]` when `step` is empty. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
 
@@ -72,8 +72,8 @@ The user-facing message is only the ack. Omit `[sect]` when this speaking messag
 [path] <absolute $DIR>
 [sect] created heading 01, updated headings 02, 03
 [step] /code-clarify next
-[dutc] Oct 13, 06:47 PM
-[call] User Prompts: 4, Model Calls: 11, Tokens Read: 8200
+[live] Nov 26, 07:02 PM | 08th
+[past] Nov 26, 07:05 PM | $0.20 | 144.6K | grok-4.7-medium
 ```
 
 ## Only the command
