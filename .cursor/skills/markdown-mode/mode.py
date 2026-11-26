@@ -12,8 +12,17 @@ root = Path(root_s).expanduser()
 cid = os.environ.get("CURSOR_CONVERSATION_ID") or ""
 trans = os.environ.get("AGENT_TRANSCRIPTS") or ""
 
+def piece(value):
+    if isinstance(value, str):
+        return len(value)
+    if value is None:
+        return 0
+    if isinstance(value, (dict, list)):
+        return len(json.dumps(value, ensure_ascii=False, separators=(",", ":")))
+    return len(str(value))
+
 def counts():
-    users = assistants = 0
+    users = assistants = chars = 0
     p = Path(trans) / cid / f"{cid}.jsonl" if cid and trans else None
     if p and p.is_file():
         for line in p.read_text(errors="replace").splitlines():
@@ -29,7 +38,28 @@ def counts():
                 users += 1
             elif role == "assistant":
                 assistants += 1
-    return users, assistants
+            else:
+                continue
+            msg = obj.get("message") if isinstance(obj.get("message"), dict) else {}
+            content = msg.get("content")
+            if isinstance(content, str):
+                chars += len(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if not isinstance(block, dict):
+                        chars += piece(block)
+                        continue
+                    kind = block.get("type")
+                    if kind == "text":
+                        chars += piece(block.get("text"))
+                    elif kind == "tool_use":
+                        chars += piece(block.get("name"))
+                        chars += piece(block.get("input"))
+                    elif kind == "tool_result":
+                        chars += piece(block.get("content"))
+                    else:
+                        chars += piece(block)
+    return users, assistants, chars // 4
 
 def is_nn(path):
     name = path.name
@@ -96,11 +126,12 @@ def finish(d):
     if (not b.is_file()) or b.stat().st_size != 0:
         print("refused")
         return
-    users, assistants = counts()
+    users, assistants, read = counts()
     print("ok")
     print(d.resolve())
     print(users)
     print(assistants)
+    print(read)
 
 if not cid or not sentinel:
     print("refused")

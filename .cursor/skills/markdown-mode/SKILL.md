@@ -60,11 +60,11 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the absolute `$DIR`, line 3 the raw user count, line 4 the raw assistant count.
+- `ok` — line 2 is the absolute `$DIR`, line 3 the raw user count, line 4 the raw assistant count, line 5 the raw read count.
 
 `new` creates `$DIR` as `<root>/<local YYYY-MM-DD>-<$CURSOR_CONVERSATION_ID>` and does not look at sibling folders. `load` uses the absolute folder from the message, requires the `load` file in it, and creates no folder. `next` uses the known `$DIR` and requires `need` when `need` is not `-`. The verb `join` uses the absolute folder from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. A raw assistant count above 0 is earlier rounds of this prompt. Prompts is the number of user messages in this conversation, including the one being answered. When the raw user count is higher, Prompts is the raw user count. Model Calls is the raw assistant count plus 2. The shell invocation is already in the file. The speaking message is the current call. A model call is one assistant invocation. A `tool_use` inside it is not another model call.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. A raw assistant count above 0 is earlier rounds of this prompt. User Prompts is the number of user messages in this conversation, including the one being answered. When the raw user count is higher, User Prompts is the raw user count. Model Calls is the raw assistant count plus 2. The shell invocation is already in the file. The speaking message is the current call. A model call is one assistant invocation. A `tool_use` inside it is not another model call. Tokens Read is line 5. The script sums the characters of the transcript text it can see, then divides by 4. That text is user text, assistant text, tool-call names, tool-call inputs, and a tool result when the file stores one. Tokens Read is that integer. It is a rough token count of the conversation text this prompt re-reads. The transcript stores no system prompt and no tool result, so Tokens Read omits both. Print line 5. Do not replace it with your own estimate.
 
 The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Omit `[step]` when `step` is empty. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
 
@@ -73,7 +73,7 @@ The user-facing message is only the ack. Omit `[sect]` when this speaking messag
 [sect] created heading 01, updated headings 02, 03
 [step] /code-clarify next
 [dutc] Oct 13, 06:47 PM
-[call] Prompts: 4, Model Calls: 11
+[call] User Prompts: 4, Model Calls: 11, Tokens Read: 8200
 ```
 
 ## Only the command
