@@ -1,6 +1,6 @@
 ---
 name: code-prepare
-description: "/code-prepare load, next, or join. Next: /code-execute next."
+description: "/code-prepare load <folder>, next <prompt>, or join <folder>. Next: /code-execute next <prompt>."
 disable-model-invocation: true
 ---
 

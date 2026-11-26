@@ -1,6 +1,6 @@
 ---
 name: plan-execute
-description: "/plan-execute load, next, or join."
+description: "/plan-execute load <folder>, next <prompt>, or join <folder>."
 disable-model-invocation: true
 ---
 

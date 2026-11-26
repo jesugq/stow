@@ -1,6 +1,6 @@
 ---
 name: plan-handoff
-description: "/plan-handoff load, next, or join. Next: /plan-prepare next."
+description: "/plan-handoff load <folder>, next <prompt>, or join <folder>. Next: /plan-prepare next <prompt>."
 disable-model-invocation: true
 ---
 

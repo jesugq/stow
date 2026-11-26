@@ -1,6 +1,6 @@
 ---
 name: code-clarify
-description: "/code-clarify load, next, or join. Next: /code-handoff next."
+description: "/code-clarify load <folder>, next <prompt>, or join <folder>. Next: /code-handoff next <prompt>."
 disable-model-invocation: true
 ---
 

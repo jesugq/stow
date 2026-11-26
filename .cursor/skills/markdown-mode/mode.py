@@ -12,6 +12,8 @@ except ValueError:
 root = Path(root_s).expanduser()
 cid = os.environ.get("CURSOR_CONVERSATION_ID") or ""
 trans = os.environ.get("AGENT_TRANSCRIPTS") or ""
+NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
+SLUG = re.compile(r"(\d{4}-\d{2}-\d{2})_([A-Za-z0-9][A-Za-z0-9_-]*)")
 
 def text_of(content):
     if isinstance(content, str):
@@ -91,27 +93,30 @@ def has_mark(d):
     f = d / mark
     return f.is_file() and f.stat().st_size == 0
 
-def folder_arg(s):
-    if not s.startswith("/"):
-        return None
-    d = Path(s)
-    name = d.name
-    if not (
-        len(name) > 11
-        and name[4] == "-"
-        and name[7] == "-"
-        and name[10] == "-"
-        and name[:4].isdigit()
-        and name[5:7].isdigit()
-        and name[8:10].isdigit()
-        and name[11:]
-    ):
+def calendar_date(s):
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", s or ""):
         return None
     try:
-        if d.parent.resolve() != root.resolve():
-            return None
-    except Exception:
+        datetime.strptime(s, "%Y-%m-%d")
+    except ValueError:
         return None
+    return s
+
+def safe_name(s):
+    if s in ("-", ""):
+        return None
+    s = "_".join(s.split())
+    if not NAME.fullmatch(s):
+        return None
+    return s
+
+def folder_named(s):
+    if not s or s == "-" or "/" in s or s.startswith("~") or s.startswith("."):
+        return None
+    m = SLUG.fullmatch(s)
+    if not m or not calendar_date(m.group(1)):
+        return None
+    d = root / s
     if not d.is_dir():
         return None
     return d
@@ -138,34 +143,43 @@ def finish(d):
     shown = users if users else 1
     live = clock(current_ms) if current_ms is not None else "none"
     print("ok")
-    print(d.resolve())
+    print(d.name)
     print(f"{live} | {ordinal(shown)}")
 
 if not cid or not sentinel:
     print("refused")
 elif kind == "new":
-    finish(root / f"{date}-{cid}")
+    name = safe_name(dir_s)
+    stamp = calendar_date(date)
+    if not name or not stamp:
+        print("refused")
+    else:
+        dest = root / f"{stamp}_{name}"
+        if dest.exists():
+            print("refused")
+        else:
+            finish(dest)
 elif kind == "count":
-    d = Path(dir_s).expanduser()
-    if dir_s == "-" or not d.is_dir():
+    d = folder_named(dir_s)
+    if d is None:
         print("refused")
     else:
         finish(d)
 elif kind == "load":
-    d = folder_arg(dir_s)
+    d = folder_named(dir_s)
     if d is not None and named(d, load):
         finish(d)
     else:
         print("refused")
 elif kind == "join":
-    d = folder_arg(dir_s)
+    d = folder_named(dir_s)
     if d is not None and has_mark(d) and named(d, need):
         finish(d)
     else:
         print("refused")
 elif kind == "next":
-    d = Path(dir_s)
-    if dir_s.startswith("/") and d.is_dir() and named(d, need):
+    d = folder_named(dir_s)
+    if d is not None and named(d, need):
         finish(d)
     else:
         print("refused")

@@ -1,6 +1,6 @@
 ---
 name: dialogue-mode
-description: "/dialogue-mode new, load, next, or join. One conversation file."
+description: "/dialogue-mode new <name>, load <folder>, next <prompt>, or join <folder>. One conversation file."
 disable-model-invocation: true
 ---
 
@@ -28,4 +28,4 @@ One topic per heading. The heading is `# NN <5-10 word title>`. Number headings 
 
 The body is the topic as it stands. Include what was asked, what was decided, and what stays open. Those three are the context a later `load` needs. The writing style comes from `markdown-mode`. This skill does not restate it.
 
-`load` requires `00-DIALOGUE.md` in the absolute folder. A folder that has only `NN.md` does not match. The verb `join` requires a zero-byte `DIALOGUE` in the absolute folder. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.
+`load` requires `00-DIALOGUE.md` in the named folder. A folder that has only `NN.md` does not match. The verb `join` requires a zero-byte `DIALOGUE` in the named folder. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.

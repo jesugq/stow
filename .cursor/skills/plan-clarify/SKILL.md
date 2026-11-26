@@ -1,6 +1,6 @@
 ---
 name: plan-clarify
-description: "/plan-clarify load, next, or join. Next: /plan-handoff next."
+description: "/plan-clarify load <folder>, next <prompt>, or join <folder>. Next: /plan-handoff next <prompt>."
 disable-model-invocation: true
 ---
 

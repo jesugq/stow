@@ -1,6 +1,6 @@
 ---
 name: code-handoff
-description: "/code-handoff load, next, or join. Next: /code-prepare next."
+description: "/code-handoff load <folder>, next <prompt>, or join <folder>. Next: /code-prepare next <prompt>."
 disable-model-invocation: true
 ---
 

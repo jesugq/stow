@@ -1,6 +1,6 @@
 ---
 name: code-execute
-description: "/code-execute load, next, or join."
+description: "/code-execute load <folder>, next <prompt>, or join <folder>."
 disable-model-invocation: true
 ---
 

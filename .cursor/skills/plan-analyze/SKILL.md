@@ -1,6 +1,6 @@
 ---
 name: plan-analyze
-description: "/plan-analyze new or load. Next: /plan-clarify next."
+description: "/plan-analyze new <name> or load <folder>. Next: /plan-clarify next <prompt>."
 disable-model-invocation: true
 ---
 
