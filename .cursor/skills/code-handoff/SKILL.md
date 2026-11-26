@@ -17,8 +17,8 @@ drop: ANALYZE,CLARIFY,PREPARE,EXECUTE
 load: 03-HANDOFF.md
 need: 02-CLARIFY.md
 mark: CLARIFY
-step: /code-prepare next
-    20|sect: heading
+next: /code-prepare next
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/03-HANDOFF.md`. `HANDOFF` also means the implementation is incomplete and not started. Prepare and execute keep that sentinel.

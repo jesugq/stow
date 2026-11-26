@@ -17,8 +17,8 @@ drop: ANALYZE,CLARIFY,EXECUTE
 load: 04-PREPARE.md
 need: 03-HANDOFF.md
 mark: HANDOFF
-step: /code-execute next
-    20|sect: heading
+next: /code-execute next
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.

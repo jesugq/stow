@@ -16,11 +16,11 @@ drop: -
 load: 00-DIALOGUE.md
 need: -
 mark: DIALOGUE
-step:
-    sect: heading
+next:
+sect: heading
 ```
 
-`new`, `load`, `next`, and `join` are accepted. This mode's file is `$DIR/00-DIALOGUE.md`. `00` is the file number because no later mode follows this one. The `step` line stays empty.
+`new`, `load`, `next`, and `join` are accepted. This mode's file is `$DIR/00-DIALOGUE.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
 
 While `DIALOGUE` exists, create that file on the first substantive query and edit it after that. Read `$DIR/00-DIALOGUE.md` once when it exists. That file is the conversation. A later `load` continues from it.
 

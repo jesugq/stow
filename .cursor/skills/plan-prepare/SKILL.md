@@ -17,8 +17,8 @@ drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_EXECUTE
 load: 04-PREPARE.md
 need: 03-HANDOFF.md
 mark: PLAN_HANDOFF
-step: /plan-execute next
-    20|sect: heading
+next: /plan-execute next
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`.

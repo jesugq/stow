@@ -17,8 +17,8 @@ drop: ANALYZE,HANDOFF,PREPARE,EXECUTE
 load: 02-CLARIFY.md
 need: 01-ANALYZE.md
 mark: ANALYZE
-step: /code-handoff next
-    20|sect: heading
+next: /code-handoff next
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/02-CLARIFY.md`.

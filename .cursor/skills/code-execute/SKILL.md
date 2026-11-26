@@ -17,8 +17,8 @@ drop: ANALYZE,CLARIFY
 load: 05-EXECUTE.md
 need: 04-PREPARE.md
 mark: PREPARE
-step:
-    20|sect: heading
+next:
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/05-EXECUTE.md`. Keep `PREPARE` and `HANDOFF`.

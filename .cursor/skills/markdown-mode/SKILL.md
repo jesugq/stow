@@ -23,13 +23,13 @@ drop: -
 load: NN
 need: -
 mark: MARKDOWN
-step:
+next:
 sect: file
 ```
 
 `verb` is the word immediately after the mode command. `new`, `load`, `next`, and `join` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `step` line is the text of the `[step]` ack. Empty omits that line. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `next` line is the following command in the `[next]` ack. Empty leaves that command blank. `sect` is `file` or `heading`.
 
 `load` and the verb `join` take one absolute folder from the message. The form is the `[path]` line. One example is `/Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10`. The parent is the expanded `root`. The name is the local date, a hyphen, and the conversation id. Any other form, including no folder, prints `refused`. Pass `-` as `dir`.
 
@@ -66,14 +66,13 @@ The first stdout line decides the reply.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[live]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. `[past]` is line 4. Do not Read or Write `99-CURSOR.md`. The shell appends it. The script reads the newest usage event for this conversation from the previous user message up to this one. The row is that event's UTC clock, then `chargedCents` divided by 100 (`$0.20`), then `inputTokens` plus `outputTokens` plus `cacheWriteTokens` plus `cacheReadTokens` (`144.6K`), then `model`. Bars separate the four fields. Line 4 is `none` when this prompt is the first or the script has no event. Print line 3 and line 4. Do not compute a second clock. Do not replace `none` with an estimate.
 
-The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Omit `[step]` when `step` is empty. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
+The user-facing message is only the ack. Omit `[sect]` when this speaking message wrote no markdown. Print `[live]`, `[sect]`, `[past]`, then `[next]`. `[next]` stays. Its first field is `/<mode> load` plus the folder on line 2. A bar and the `next` line follow when that line has text. `[sect]` is `created` or `updated`, then the noun, then the numbers whose body was written. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A turn that both creates and updates lists created first (`created heading 01, updated headings 02, 03`). A heading that only shifted number is not listed.
 
 ```
-[path] <absolute $DIR>
-[sect] created heading 01, updated headings 02, 03
-[step] /code-clarify next
 [live] Nov 26, 07:02 PM | 08th
+[sect] created heading 01, updated headings 02, 03
 [past] Nov 26, 07:05 PM | $0.20 | 144.6K | grok-4.7-medium
+[next] /code-analyze load /Users/jesus.gonzalez/.cursor/dynamic-mode/2026-11-23-68a3338d-b93c-4269-a651-ab71c74adb10 | /code-clarify next
 ```
 
 ## Only the command

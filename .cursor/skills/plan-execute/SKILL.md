@@ -17,8 +17,8 @@ drop: PLAN_ANALYZE,PLAN_CLARIFY
 load: 05-EXECUTE.md
 need: 04-PREPARE.md
 mark: PLAN_PREPARE
-step:
-    20|sect: heading
+next:
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/05-EXECUTE.md`.

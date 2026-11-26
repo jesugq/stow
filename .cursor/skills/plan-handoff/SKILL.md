@@ -17,8 +17,8 @@ drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_PREPARE,PLAN_EXECUTE
 load: 03-HANDOFF.md
 need: 02-CLARIFY.md
 mark: PLAN_CLARIFY
-step: /plan-prepare next
-    20|sect: heading
+next: /plan-prepare next
+sect: heading
 ```
 
 `load`, `next`, and `join` are accepted. This mode's file is `$DIR/03-HANDOFF.md`.
