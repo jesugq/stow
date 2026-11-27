@@ -11,7 +11,7 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
     10|
 ```
 verb: new | load
-root: ~/.cursor/plan-mode
+root: /Users/jesus.gonzalez/Development/areas/plans
 sentinel: PLAN_ANALYZE
 drop: PLAN_CLARIFY,PLAN_HANDOFF,PLAN_PREPARE,PLAN_EXECUTE
 load: -

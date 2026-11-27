@@ -46,7 +46,7 @@ sect: file
 
 When the message is `new` or `load` plus its argument, follow Common and Only the command, then stop. Do not read Work. Do not write markdown for that message, including when the caller's skill describes a file. A `next` with a prompt follows Common and Work. The prompt is the message that asks for an answer.
 
-If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/code-analyze`, `/code-clarify`, `/code-handoff`, `/code-prepare`, `/code-execute`, `/plan-analyze`, `/plan-clarify`, `/plan-handoff`, `/plan-prepare`, or `/plan-execute`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
+If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/code-analyze`, `/code-clarify`, `/code-handoff`, `/code-prepare`, `/code-execute`, `/plan-analyze`, `/plan-clarify`, `/plan-handoff`, `/plan-prepare`, `/plan-execute`, or `/snap-perform`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
 A folder this conversation already set stays `$DIR` until a later `new` or `load`. `next` keeps that folder. `next` does not set `$DIR` on its own.
 
@@ -85,7 +85,7 @@ Example, as plain lines:
 [edit] updated headings 02, 03
 [next] /code-clarify next
 [load] /code-analyze load 2026-11-23_Passkey_error
-[path] cd ~/.cursor/dynamic-mode/2026-11-23_Passkey_error && nvim
+[path] cd /Users/jesus.gonzalez/Development/areas/codes/2026-11-23_Passkey_error && nvim
 
 ## Only the command
 

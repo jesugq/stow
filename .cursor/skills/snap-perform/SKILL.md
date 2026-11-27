@@ -1,17 +1,17 @@
 ---
-name: dialogue-mode
-description: "/dialogue-mode new <name>, load <folder>, or next <prompt>. One conversation file."
+name: snap-perform
+description: "/snap-perform new <name>, load <folder>, or next <prompt>. One conversation file."
 disable-model-invocation: true
 ---
 
-# Dialogue mode
+# Snap perform
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: new | load | next
-root: ~/.cursor/dialogue-mode
-sentinel: DIALOGUE
+root: /Users/jesus.gonzalez/Development/areas/snaps
+sentinel: PERFORM
 drop: -
 load: -
 need: -
@@ -19,9 +19,9 @@ next:
 sect: heading
 ```
 
-`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-DIALOGUE.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
+`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-PERFORM.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
 
-Create that file on the first substantive query and edit it after that. Read `$DIR/00-DIALOGUE.md` once when it exists. That file is the conversation. A later `load` continues from it.
+Create that file on the first substantive query and edit it after that. Read `$DIR/00-PERFORM.md` once when it exists. That file is the conversation. A later `load` continues from it.
 
 One topic per heading. The heading is `# NN <5-10 word title>`. Number headings from `01` in file order. A message that continues a topic updates that heading. A new topic appends the next number. Do not rewrite an unchanged heading. Do not write a second file.
 

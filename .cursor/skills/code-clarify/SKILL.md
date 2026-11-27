@@ -11,7 +11,7 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
     10|
 ```
 verb: load | next
-root: ~/.cursor/dynamic-mode
+root: /Users/jesus.gonzalez/Development/areas/codes
 sentinel: CLARIFY
 drop: ANALYZE,HANDOFF,PREPARE,EXECUTE
 load: -
