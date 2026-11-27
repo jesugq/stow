@@ -167,9 +167,16 @@ def folder_named(s):
 def prepend_call(d, live):
     path = d / "TIMESTAMPS"
     prev = path.read_text(errors="replace") if path.is_file() else ""
-    text = live + "\n" + prev
+    name = d.name
+    lines = prev.splitlines()
+    if lines and lines[0] == name:
+        body = lines[1:]
+    else:
+        body = lines
+    body.insert(0, live)
+    text = name + "\n" + "\n".join(body) + "\n"
     path.write_text(text)
-    return sum(1 for line in text.splitlines() if line.strip())
+    return sum(1 for line in body if line.strip())
 
 def finish(d):
     if not cid:

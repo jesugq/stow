@@ -15,9 +15,9 @@ sentinel: DISCOVER
 drop: PRIORITIZE,DEFINE,REFINE,EXECUTE
 load: -
 need: -
-prev: None
+prev: none
 curr: Discover
-next: Prioritize
+next: code-prioritize
 sect: heading
 ```
 

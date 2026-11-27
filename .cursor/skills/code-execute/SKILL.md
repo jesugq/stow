@@ -15,9 +15,9 @@ sentinel: EXECUTE
 drop: DISCOVER,PRIORITIZE
 load: -
 need: 04-REFINE.md
-prev: Refine
+prev: code-refine
 curr: Execute
-next: None
+next: none
 sect: heading
 ```
 

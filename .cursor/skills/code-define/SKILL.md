@@ -15,9 +15,9 @@ sentinel: DEFINE
 drop: DISCOVER,PRIORITIZE,REFINE,EXECUTE
 load: -
 need: 02-PRIORITIZE.md
-prev: Prioritize
+prev: code-prioritize
 curr: Define
-next: Refine
+next: code-refine
 sect: heading
 ```
 
