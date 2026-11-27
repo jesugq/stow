@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: load | next
 root: /Users/jesus.gonzalez/Development/areas/plans
-sentinel: PLAN_EXECUTE
-drop: PLAN_DISCOVER,PLAN_PRIORITIZE
 load: -
 need: 04-REFINE.md
 prev: plan-refine
@@ -21,7 +19,7 @@ next: none
 sect: heading
 ```
 
-`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
+`load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/05-EXECUTE.md`.
 
 One message that asks for documentation work does the whole pass. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. Resolved prioritize pins override conflicting define or refine text.
 

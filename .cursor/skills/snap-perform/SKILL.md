@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: new | load | next
 root: /Users/jesus.gonzalez/Development/areas/snaps
-sentinel: PERFORM
-drop: -
 load: -
 need: -
 prev: none
@@ -21,7 +19,7 @@ next: none
 sect: heading
 ```
 
-`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-PERFORM.md`. `00` is the file number because no later mode follows this one. `prev` is `none`. `curr` is `Perform`. `next` is `none`.
+`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. A work message with no verb uses `count`. This mode's file is `$DIR/00-PERFORM.md`. `00` is the file number because no later mode follows this one. `prev` is `none`. `curr` is `Perform`. `next` is `none`.
 
 Create that file on the first substantive query and edit it after that. Read `$DIR/00-PERFORM.md` once when it exists. That file is the conversation. A later `load` continues from it.
 

@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: new | load
 root: /Users/jesus.gonzalez/Development/areas/plans
-sentinel: PLAN_DISCOVER
-drop: PLAN_PRIORITIZE,PLAN_DEFINE,PLAN_REFINE,PLAN_EXECUTE
 load: -
 need: -
 prev: none
@@ -21,7 +19,7 @@ next: plan-prioritize
 sect: heading
 ```
 
-`new` and `load` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/01-DISCOVER.md`.
+`new` and `load` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/01-DISCOVER.md`.
 
 Create that file on the first substantive query and edit it after that. Each heading is one finding that could change the documentation quality or direction. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation.
 

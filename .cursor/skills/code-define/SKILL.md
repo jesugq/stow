@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: load | next
 root: /Users/jesus.gonzalez/Development/areas/codes
-sentinel: DEFINE
-drop: DISCOVER,PRIORITIZE,REFINE,EXECUTE
 load: -
 need: 02-PRIORITIZE.md
 prev: code-prioritize
@@ -21,7 +19,7 @@ next: code-refine
 sect: heading
 ```
 
-`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/03-DEFINE.md`. `DEFINE` also means the implementation is incomplete and not started. Refine and execute keep that sentinel.
+`load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/03-DEFINE.md`.
 
 Do not implement. Do not re-investigate the codebase. Create that file when it is absent, including the toggle turn. A later agree or revise edits it. Read `$DIR/02-PRIORITIZE.md` and write each pin whose first line is `Resolved` into the intention it belongs to. Do not reopen it or list rejected options. "Yes", "OK", "Looks good", and "Do it" accept the discussed intentions and are writes. A revision changes only the intentions the user changed. Tool-only turns write nothing.
 

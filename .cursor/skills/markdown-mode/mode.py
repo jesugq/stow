@@ -1,68 +1,30 @@
 #!/usr/bin/env python3
-import json, os, re, sys, time
+import json, os, re, subprocess, sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 cid = os.environ.get("CURSOR_CONVERSATION_ID") or ""
 trans = os.environ.get("AGENT_TRANSCRIPTS") or ""
 
-def timer_path():
-    if not re.fullmatch(r"[A-Za-z0-9_-]+", cid or ""):
-        return None
-    d = Path.home() / ".local/state/markdown-mode/timers"
-    d.mkdir(parents=True, exist_ok=True)
-    return d / cid
+def timer_out(cmd):
+    script = Path(__file__).resolve().with_name("time.py")
+    proc = subprocess.run(
+        [sys.executable, str(script), cmd],
+        capture_output=True,
+        text=True,
+    )
+    return (proc.stdout or "").strip()
 
-def begin_timer():
-    p = timer_path()
-    if p is not None and not p.is_file():
-        p.write_text(f"{time.time():.3f}\n")
-    print("timer")
-
-def drop_timer():
-    p = timer_path()
-    if p is not None and p.is_file():
-        p.unlink()
-
-def cancel_timer():
-    drop_timer()
-    print("timer")
+def peek_span():
+    line = timer_out("peek")
+    return line or "n/a"
 
 def refuse():
-    drop_timer()
+    timer_out("clear")
     print("refused")
 
-def format_span(secs):
-    h, rem = divmod(secs, 3600)
-    m, s = divmod(rem, 60)
-    if h:
-        return f"{h}h {m:02d}m {s:02d}s"
-    if m:
-        return f"{m}m {s:02d}s"
-    return f"{s}s"
-
-def take_span():
-    p = timer_path()
-    if p is None or not p.is_file():
-        return "n/a"
-    raw = p.read_text(errors="replace").strip()
-    p.unlink()
-    try:
-        start = float(raw)
-    except ValueError:
-        return "n/a"
-    secs = max(0, int(time.time() - start))
-    return format_span(secs)
-
-if len(sys.argv) > 1 and sys.argv[1] == "begin":
-    begin_timer()
-    raise SystemExit
-if len(sys.argv) > 1 and sys.argv[1] == "cancel":
-    cancel_timer()
-    raise SystemExit
-
 try:
-    kind, root_s, date, dir_s, sentinel, load, need, drop_s = sys.argv[1:9]
+    kind, root_s, date, dir_s, load, need = sys.argv[1:7]
 except ValueError:
     refuse()
     raise SystemExit
@@ -183,28 +145,17 @@ def finish(d):
         refuse()
         return
     d.mkdir(parents=True, exist_ok=True)
-    if drop_s != "-":
-        for name in drop_s.split(","):
-            if not name or name == sentinel:
-                continue
-            f = d / name
-            if f.is_file():
-                f.unlink()
-    b = d / sentinel
-    if b.exists() and ((not b.is_file()) or b.stat().st_size != 0):
-        refuse()
-        return
     current_ms, users = counts()
     shown = users if users else 1
     live = clock(current_ms) if current_ms is not None else "none"
-    row = f"{live} | {take_span()}"
+    row = f"{live} | {peek_span()}"
     stamps = prepend_call(d, row)
     print("ok")
     print(d.name)
     print(row)
-    print(f"Prompt {shown} | Timestamps {stamps}")
+    print(f"Prompts {shown} | Timestamps {stamps}")
 
-if not cid or not sentinel:
+if not cid:
     refuse()
 elif kind == "new":
     name = safe_name(dir_s)

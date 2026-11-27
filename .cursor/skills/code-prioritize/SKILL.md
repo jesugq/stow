@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: load | next
 root: /Users/jesus.gonzalez/Development/areas/codes
-sentinel: PRIORITIZE
-drop: DISCOVER,DEFINE,REFINE,EXECUTE
 load: -
 need: 01-DISCOVER.md
 prev: code-discover
@@ -21,7 +19,7 @@ next: code-define
 sect: heading
 ```
 
-`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/02-PRIORITIZE.md`.
+`load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/02-PRIORITIZE.md`.
 
 A turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

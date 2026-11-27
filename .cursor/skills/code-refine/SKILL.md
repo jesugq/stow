@@ -11,8 +11,6 @@ Hard rule: Before any response in this mode, run the `markdown-mode` workflow. T
 ```
 verb: load | next
 root: /Users/jesus.gonzalez/Development/areas/codes
-sentinel: REFINE
-drop: DISCOVER,PRIORITIZE,EXECUTE
 load: -
 need: 03-DEFINE.md
 prev: code-define
@@ -21,7 +19,7 @@ next: code-execute
 sect: heading
 ```
 
-`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-REFINE.md`. Keep `DEFINE`.
+`load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/04-REFINE.md`.
 
 Do not implement. A turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
