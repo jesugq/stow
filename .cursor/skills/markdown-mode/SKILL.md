@@ -46,7 +46,7 @@ sect: file
 
 When the message is `new` or `load` plus its argument, follow Common and Only the command, then stop. Do not read Work. Do not write markdown for that message, including when the caller's skill describes a file. A `next` with a prompt follows Common and Work. The prompt is the message that asks for an answer.
 
-If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/code-analyze`, `/code-clarify`, `/code-handoff`, `/code-prepare`, `/code-execute`, `/plan-analyze`, `/plan-clarify`, `/plan-handoff`, `/plan-prepare`, `/plan-execute`, or `/snap-perform`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
+If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/code-discover`, `/code-prioritize`, `/code-define`, `/code-refine`, `/code-execute`, `/plan-discover`, `/plan-prioritize`, `/plan-define`, `/plan-refine`, `/plan-execute`, or `/snap-perform`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
 A folder this conversation already set stays `$DIR` until a later `new` or `load`. `next` keeps that folder. `next` does not set `$DIR` on its own.
 
@@ -69,7 +69,7 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `drop
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt 8 | Timestamps 12`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
+- `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompts 8 | Timestamps 12`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
 
 `new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message. `load` creates no folder. `load` requires a file only when the parameter is not `-`. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell does not create `sentinel`. It deletes each `drop` name. It does not truncate a sentinel that exists. It does not delete markdown.
 
@@ -79,11 +79,11 @@ The user-facing message is only the ack. Print `[user]`, `[time]`, `[make]`, `[e
 
 Example, as plain lines:
 
-[user] Prompt 8 | Timestamps 12
+[user] Prompts 8 | Timestamps 12
 [time] Nov 26, 07:02 PM | 4m 12s
 [make] Headings 01
 [edit] Headings 02, 03
-[next] /code-clarify next
+[next] /code-prioritize next
 [name] 2026-11-23_Passkey_error
 
 ## Only the command

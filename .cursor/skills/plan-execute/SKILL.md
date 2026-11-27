@@ -8,21 +8,20 @@ disable-model-invocation: true
 
 Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
-    10|
 ```
 verb: load | next
 root: /Users/jesus.gonzalez/Development/areas/plans
 sentinel: PLAN_EXECUTE
-drop: PLAN_ANALYZE,PLAN_CLARIFY
+drop: PLAN_DISCOVER,PLAN_PRIORITIZE
 load: -
-need: 04-PREPARE.md
+need: 04-REFINE.md
 next:
 sect: heading
 ```
 
 `load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
 
-One message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
+One message that asks for documentation work does the whole pass. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. Resolved prioritize pins override conflicting define or refine text.
 
 Do not write partial final output in multiple passes unless the user asked for a revision. Create `05-EXECUTE.md` when it is absent. Write it once per pass at the end.
 
@@ -33,7 +32,7 @@ The file structure is:
 
 `# AA` must verify:
 - `doc_type` is resolved to one of `prd`, `tdd`, or `issue`
-- all `Blocking` prepare pins are resolved
+- all `Blocking` refine pins are resolved
 - required section map for selected `doc_type` is satisfied
 
 If `# AA` fails, stop after `# AA` and list what is missing.
