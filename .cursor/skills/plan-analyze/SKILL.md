@@ -16,7 +16,6 @@ sentinel: PLAN_ANALYZE
 drop: PLAN_CLARIFY,PLAN_HANDOFF,PLAN_PREPARE,PLAN_EXECUTE
 load: -
 need: -
-mark: -
 next: /plan-clarify next
 sect: heading
 ```

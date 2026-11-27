@@ -1,6 +1,6 @@
 ---
 name: plan-clarify
-description: "/plan-clarify load <folder>, next <prompt>, or join <folder>. Next: /plan-handoff next <prompt>."
+description: "/plan-clarify load <folder> or next <prompt>. Next: /plan-handoff next <prompt>."
 disable-model-invocation: true
 ---
 
@@ -10,18 +10,17 @@ Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdo
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
     10|
 ```
-verb: load | next | join
+verb: load | next
 root: ~/.cursor/plan-mode
 sentinel: PLAN_CLARIFY
 drop: PLAN_ANALYZE,PLAN_HANDOFF,PLAN_PREPARE,PLAN_EXECUTE
 load: -
 need: 01-ANALYZE.md
-mark: PLAN_ANALYZE
 next: /plan-handoff next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/02-CLARIFY.md`.
+`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/02-CLARIFY.md`.
 
 While `PLAN_CLARIFY` exists, a turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

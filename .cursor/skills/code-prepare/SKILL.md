@@ -1,6 +1,6 @@
 ---
 name: code-prepare
-description: "/code-prepare load <folder>, next <prompt>, or join <folder>. Next: /code-execute next <prompt>."
+description: "/code-prepare load <folder> or next <prompt>. Next: /code-execute next <prompt>."
 disable-model-invocation: true
 ---
 
@@ -10,18 +10,17 @@ Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdo
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
     10|
 ```
-verb: load | next | join
+verb: load | next
 root: ~/.cursor/dynamic-mode
 sentinel: PREPARE
 drop: ANALYZE,CLARIFY,EXECUTE
 load: -
 need: 03-HANDOFF.md
-mark: HANDOFF
 next: /code-execute next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
+`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
 
 Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

@@ -16,7 +16,6 @@ sentinel: ANALYZE
 drop: CLARIFY,HANDOFF,PREPARE,EXECUTE
 load: -
 need: -
-mark: -
 next: /code-clarify next
 sect: heading
 ```

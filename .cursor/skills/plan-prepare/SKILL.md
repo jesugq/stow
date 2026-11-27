@@ -1,6 +1,6 @@
 ---
 name: plan-prepare
-description: "/plan-prepare load <folder>, next <prompt>, or join <folder>. Next: /plan-execute next <prompt>."
+description: "/plan-prepare load <folder> or next <prompt>. Next: /plan-execute next <prompt>."
 disable-model-invocation: true
 ---
 
@@ -10,18 +10,17 @@ Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdo
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
     10|
 ```
-verb: load | next | join
+verb: load | next
 root: ~/.cursor/plan-mode
 sentinel: PLAN_PREPARE
 drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_EXECUTE
 load: -
 need: 03-HANDOFF.md
-mark: PLAN_HANDOFF
 next: /plan-execute next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`.
+`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`.
 
 Do not write the final document in this mode. While `PLAN_PREPARE` exists, a turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
 

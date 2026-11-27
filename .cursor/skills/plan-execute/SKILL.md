@@ -1,6 +1,6 @@
 ---
 name: plan-execute
-description: "/plan-execute load <folder>, next <prompt>, or join <folder>."
+description: "/plan-execute load <folder> or next <prompt>."
 disable-model-invocation: true
 ---
 
@@ -10,18 +10,17 @@ Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdo
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
     10|
 ```
-verb: load | next | join
+verb: load | next
 root: ~/.cursor/plan-mode
 sentinel: PLAN_EXECUTE
 drop: PLAN_ANALYZE,PLAN_CLARIFY
 load: -
 need: 04-PREPARE.md
-mark: PLAN_PREPARE
 next:
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
+`load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
 
 While `PLAN_EXECUTE` exists, one message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
 

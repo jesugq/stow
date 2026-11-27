@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 try:
-    kind, root_s, date, dir_s, sentinel, load, need, mark, drop_s = sys.argv[1:10]
+    kind, root_s, date, dir_s, sentinel, load, need, drop_s = sys.argv[1:9]
 except ValueError:
     print("refused")
     raise SystemExit
@@ -87,12 +87,6 @@ def named(d, name):
         return any(is_nn(p) for p in d.iterdir())
     return (d / name).is_file()
 
-def has_mark(d):
-    if mark in ("-", ""):
-        return True
-    f = d / mark
-    return f.is_file() and f.stat().st_size == 0
-
 def calendar_date(s):
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", s or ""):
         return None
@@ -168,12 +162,6 @@ elif kind == "count":
 elif kind == "load":
     d = folder_named(dir_s)
     if d is not None and named(d, load):
-        finish(d)
-    else:
-        print("refused")
-elif kind == "join":
-    d = folder_named(dir_s)
-    if d is not None and has_mark(d) and named(d, need):
         finish(d)
     else:
         print("refused")

@@ -1,6 +1,6 @@
 ---
 name: markdown-mode
-description: "/markdown-mode new <name>, load <folder>, next <prompt>, or join <folder>."
+description: "/markdown-mode new <name>, load <folder>, or next <prompt>."
 disable-model-invocation: true
 ---
 
@@ -9,39 +9,38 @@ disable-model-invocation: true
 `CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 
-`/markdown-mode new`, `/markdown-mode load`, `/markdown-mode next`, and `/markdown-mode join` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name and requires the `load` file there. `next` takes a prompt and stays on the known `$DIR`. `join` takes a folder name and requires the previous sentinel there. A verb with no argument prints `refused` and stops.
+`/markdown-mode new`, `/markdown-mode load`, and `/markdown-mode next` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name and requires the `load` file there. `next` takes a prompt and stays on the known `$DIR`. A verb with no argument prints `refused` and stops.
 
 ## Parameters
 
 Direct commands use these values. A caller replaces the ones it names.
 
 ```
-verb: new | load | next | join
+verb: new | load | next
 root: ~/.cursor/markdown-mode
 sentinel: MARKDOWN
 drop: -
 load: NN
 need: -
-mark: MARKDOWN
 next:
 sect: file
 ```
 
-`verb` is the word immediately after the mode command. `new`, `load`, `next`, and `join` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
+`verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` and the verb `join` require, or `-`. `mark` is the previous mode's zero-byte sentinel the verb `join` requires. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
 
 `$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id. Do not print a resolved `/Users/...` path. Copy `root` as the caller wrote it, tilde included.
 
-`new` requires the name. Pass that name as `dir`. `load` and `join` require the folder name, one token. Pass that folder name as `dir`. An absolute path, a missing token, or a second token prints `refused`. `new`, `load`, and `join` do not take a prompt. The message is only the command and that argument. Follow Common and Only the command, then stop.
+`new` requires the name. Pass that name as `dir`. `load` requires the folder name, one token. Pass that folder name as `dir`. An absolute path, a missing token, or a second token prints `refused`. `new` and `load` do not take a prompt. The message is only the command and that argument. Follow Common and Only the command, then stop.
 
-`next` requires the prompt. The prompt is every word after the verb. No prompt prints `refused` and does not run the shell. The prompt is the work. Follow Common and Work. `next` takes no folder. A folder written beside `next` does not count. `next` is allowed only when an earlier message in this conversation already set `$DIR` with `new`, `load`, or `join`. The first user message cannot be `next`. Do not look for `mark`. Do not use a `[path]` line to discover a folder. No known `$DIR`: pass `-` as `dir`. Do not read the transcript to learn which verb ran. `join` uses the folder name in the message. It looks for `mark`, not for the `load` file.
+`next` requires the prompt. The prompt is every word after the verb. No prompt prints `refused` and does not run the shell. The prompt is the work. Follow Common and Work. `next` takes no folder. A folder written beside `next` does not count. `next` is allowed only when an earlier message in this conversation already set `$DIR` with `new` or `load`. The first user message cannot be `next`. Do not use a `[path]` line to discover a folder. No known `$DIR`: pass `-` as `dir`. Do not read the transcript to learn which verb ran.
 
-When the message is `new`, `load`, or `join` plus its argument, follow Common and Only the command, then stop. Do not read Work. Do not write markdown for that message, including when the caller's skill describes a file. A `next` with a prompt follows Common and Work. The prompt is the message that asks for an answer.
+When the message is `new` or `load` plus its argument, follow Common and Only the command, then stop. Do not read Work. Do not write markdown for that message, including when the caller's skill describes a file. A `next` with a prompt follows Common and Work. The prompt is the message that asks for an answer.
 
 If the message contains more than one of `/markdown-mode`, `/booking-mode`, `/code-analyze`, `/code-clarify`, `/code-handoff`, `/code-prepare`, `/code-execute`, `/plan-analyze`, `/plan-clarify`, `/plan-handoff`, `/plan-prepare`, or `/plan-execute`, the last one is the caller for the whole message. Use that caller's parameters. Write that caller's file and print that ack. A caller may append lines after the ack only when its own skill says so.
 
-A folder this conversation already set stays `$DIR` until a later `new`, `load`, or verb `join`. `next` keeps that folder. `next` does not set `$DIR` on its own.
+A folder this conversation already set stays `$DIR` until a later `new` or `load`. `next` keeps that folder. `next` does not set `$DIR` on its own.
 
 ## Common
 
@@ -54,17 +53,17 @@ The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentin
 One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints the clock row.
 
 ```
-python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <mark> <drop>
+python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <drop>
 ```
 
-Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `mark`, `drop`. `kind` is `new`, `load`, `next`, `join`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the name for `new`, the folder name for `load`, `join`, `next`, and `count`, and `-` when `next` has no known `$DIR`. Pass `root` as the caller wrote it. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, `next`, or `join`.
+Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `drop`. `kind` is `new`, `load`, `next`, or `count`. `date` is the folder date for `new`, otherwise `-`. `dir` is the name for `new`, the folder name for `load`, `next`, and `count`, and `-` when `next` has no known `$DIR`. Pass `root` as the caller wrote it. `count` is the kind when this conversation already has `$DIR` and the message is work with no `new`, `load`, or `next`.
 
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
 - `ok` — line 2 is the folder name, line 3 the clock, a bar, and the prompt ordinal (`Nov 26, 07:02 PM | 08th`). `$DIR` is `<root>/<line 2>`.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. It does not look for `mark`. The verb `join` uses the folder name from the message, requires a zero-byte `mark`, requires `need` when `need` is not `-`, and creates no folder. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[call]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. Print line 3. Do not compute a second clock.
 
