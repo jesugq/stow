@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Prioritize mode
 
-Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Call the Skill tool on the `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: load | next
-root: /Users/jesus.gonzalez/Development/areas/codes
+root: areas/codes
 load: -
 need: 01-DISCOVER.md
 prev: code-discover

@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Snap perform
 
-Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Call the Skill tool on the `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: new | load | next
-root: /Users/jesus.gonzalez/Development/areas/snaps
+root: areas/snaps
 load: -
 need: -
 prev: none
@@ -26,5 +26,3 @@ Create that file on the first substantive query and edit it after that. Read `$D
 One topic per heading. The heading is `# NN <5-10 word title>`. Number headings from `01` in file order. A message that continues a topic updates that heading. A new topic appends the next number. Do not rewrite an unchanged heading. Do not write a second file.
 
 The body is the topic as it stands. Include what was asked, what was decided, and what stays open. Those three are the context a later `load` needs. The writing style comes from `markdown-mode`. This skill does not restate it.
-
-"Yes", "Done", and tool-only turns that are not this mode: no ack and no file.

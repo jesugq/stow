@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Markdown mode
 
-`CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once, after `begin`. Do not Read it before `begin`. Do not Read it again.
+`CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This file is the `markdown-mode` skill. Call the Skill tool on this `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once, after `begin`. Do not Read it before `begin`. Do not Read it again.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 
 The first thing you do is start the timer. Run that command alone, before any Read, search, or edit.
@@ -36,9 +36,9 @@ sect: file
 
 `verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `load` is `-`, or a file name the folder must contain. `-` requires no markdown file. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. `prev` is the previous skill, or `none`. `curr` is the skill in use. `next` is the following skill, or `none`. `[sdlc]` joins `prev`, `curr`, and `next` with ` -> `. Always print `[sdlc]`. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. Callers write `areas/snaps`, `areas/codes`, or `areas/plans`. The mode shell uses `root` only to place the folder. Pass that string unchanged. `load` is `-`, or a file name the folder must contain. `-` requires no markdown file. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. `prev` is the previous skill, or `none`. `curr` is the skill in use. `next` is the following skill, or `none`. `[sdlc]` joins `prev`, `curr`, and `next` with ` -> `. Always print `[sdlc]`. `sect` is `file` or `heading`.
 
-`$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id. Do not print a resolved `/Users/...` path. Copy `root` as the caller wrote it, tilde included.
+`$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id.
 
 `new` requires the name. Pass that name as `dir`. `load` requires the folder name, one token. Pass that folder name as `dir`. An absolute path, a missing token, or a second token prints `refused`. `new` and `load` do not take a prompt. The message is only the command and that argument. Follow Common and Only the command, then stop.
 

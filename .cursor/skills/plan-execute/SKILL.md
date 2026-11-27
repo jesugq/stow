@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Plan execute mode
 
-Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Call the Skill tool on the `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: load | next
-root: /Users/jesus.gonzalez/Development/areas/plans
+root: areas/plans
 load: -
 need: 04-REFINE.md
 prev: plan-refine
@@ -21,7 +21,7 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/05-EXECUTE.md`.
 
-One message that asks for documentation work does the whole pass. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. Resolved prioritize pins override conflicting define or refine text.
+One message that asks for the document, or agrees to it, does the whole pass. Any wording counts. A turn that only runs commands writes nothing. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. Resolved prioritize pins override conflicting define or refine text.
 
 Do not write partial final output in multiple passes unless the user asked for a revision. Create `05-EXECUTE.md` when it is absent. Write it once per pass at the end.
 

@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Plan discover mode
 
-Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Call the Skill tool on the `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: new | load
-root: /Users/jesus.gonzalez/Development/areas/plans
+root: areas/plans
 load: -
 need: -
 prev: none
@@ -25,4 +25,4 @@ Create that file on the first substantive query and edit it after that. Each hea
 
 Do not write solutions, implementation steps, or final document prose in this mode. Write findings, evidence, and unknowns only. For each non-trivial claim, include a source when available. If no source is available, mark it as `Unverified`.
 
-Track unknowns that could affect the final document quality as explicit statements in the finding body. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.
+Track unknowns that could affect the final document quality as explicit statements in the finding body.

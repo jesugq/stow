@@ -29,7 +29,14 @@ except ValueError:
     refuse()
     raise SystemExit
 
-root = Path(root_s).expanduser()
+def resolve_root(root_s):
+    expanded = Path(root_s).expanduser()
+    if expanded.is_absolute():
+        return expanded
+    # areas/<name> is the parent under ~/Development. Root only places the folder.
+    return Path.home() / "Development" / root_s
+
+root = resolve_root(root_s)
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 SLUG = re.compile(r"(\d{4}-\d{2}-\d{2})_([A-Za-z0-9][A-Za-z0-9_-]*)")
 

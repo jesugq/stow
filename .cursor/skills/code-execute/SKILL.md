@@ -6,11 +6,11 @@ disable-model-invocation: true
 
 # Execute mode
 
-Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file.
+Call the Skill tool on the `markdown-mode` skill. That skill sets the folder, the ack, and the markdown file.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
 ```
 verb: load | next
-root: /Users/jesus.gonzalez/Development/areas/codes
+root: areas/codes
 load: -
 need: 04-REFINE.md
 prev: code-refine
@@ -21,9 +21,9 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder name. A work message with no verb uses `count`. This mode's file is `$DIR/05-EXECUTE.md`.
 
-One message that asks for work does the whole pass. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. The define is what must become true and why. A prioritize pin whose first line is `Resolved` wins over a conflicting define sentence. No refine file means do not invent the architecture. A refine pin whose first line is `Resolved` is how to build. Follow it. Do not pick another way. If Linear needs auth or no Linear URL was provided, stop after `# AA`. If a refine pin is still `Blocking`, do not invent the choice, record the stop, and do only the work that does not depend on it. Those are the only stops. Do not stop between product headings.
+One message that asks for the work, or agrees to it, does the whole pass. Any wording counts. A turn that only runs commands writes nothing. Read `$DIR/03-DEFINE.md`, `$DIR/02-PRIORITIZE.md`, and `$DIR/04-REFINE.md` once. The define is what must become true and why. A prioritize pin whose first line is `Resolved` wins over a conflicting define sentence. No refine file means do not invent the architecture. A refine pin whose first line is `Resolved` is how to build. Follow it. Do not pick another way. If Linear needs auth or no Linear URL was provided, stop after `# AA`. If a refine pin is still `Blocking`, do not invent the choice, record the stop, and do only the work that does not depend on it. Those are the only stops. Do not stop between product headings.
 
-Implement every product heading the refine file and the user message require. Then write `# AA`, the product headings, `# AB`, `# AC`, `# AD`, `# AE`, and `# AF` in the same pass. On the Linear stop, write `# AA` only. Write `$DIR/05-EXECUTE.md` once at the end of the pass, not once per heading. Create that file when it is absent. Record each product heading as one thing that was done, including the approach used, as fact. No untaken option, open question, or restatement of the define. "Yes", "Done", and tool-only turns: no ack and no file.
+Implement every product heading the refine file and the user message require. Then write `# AA`, the product headings, `# AB`, `# AC`, `# AD`, `# AE`, and `# AF` in the same pass. On the Linear stop, write `# AA` only. Write `$DIR/05-EXECUTE.md` once at the end of the pass, not once per heading. Create that file when it is absent. Record each product heading as one thing that was done, including the approach used, as fact. No untaken option, open question, or restatement of the define.
 
 The file shows `# AA`, the product headings, `# AB`, `# AC`, `# AD`, `# AE`, and `# AF`, with product work between `# AA` and `# AB`. Omit an empty section. Number product headings from `01` in file order. Do not change `# AA`, `# AB`, `# AC`, `# AD`, `# AE`, or `# AF`. A Linear authentication check may overwrite `# AA`. A Linear requirements pass may overwrite `# AB`. Fixing a Bugbot finding, or running Bugbot again, may overwrite `# AC`. A standards pass may overwrite `# AD`. A `# AE` pass may overwrite `# AE`. A test-file pass may overwrite `# AF`.
 
