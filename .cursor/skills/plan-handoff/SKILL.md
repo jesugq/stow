@@ -14,14 +14,14 @@ verb: load | next | join
 root: ~/.cursor/plan-mode
 sentinel: PLAN_HANDOFF
 drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_PREPARE,PLAN_EXECUTE
-load: 03-HANDOFF.md
+load: -
 need: 02-CLARIFY.md
 mark: PLAN_CLARIFY
 next: /plan-prepare next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. This mode's file is `$DIR/03-HANDOFF.md`.
+`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/03-HANDOFF.md`.
 
 Do not write final document prose. While `PLAN_HANDOFF` exists, create that file when it is absent, including the toggle turn. A later agree or revise edits it. Read `$DIR/02-CLARIFY.md` and write each pin whose first line is `Resolved` into the intention it belongs to. Do not reopen it or list rejected options.
 

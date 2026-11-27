@@ -14,14 +14,14 @@ verb: load | next | join
 root: ~/.cursor/plan-mode
 sentinel: PLAN_PREPARE
 drop: PLAN_ANALYZE,PLAN_CLARIFY,PLAN_EXECUTE
-load: 04-PREPARE.md
+load: -
 need: 03-HANDOFF.md
 mark: PLAN_HANDOFF
 next: /plan-execute next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`.
+`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`.
 
 Do not write the final document in this mode. While `PLAN_PREPARE` exists, a turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
 

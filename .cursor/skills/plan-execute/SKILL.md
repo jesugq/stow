@@ -14,14 +14,14 @@ verb: load | next | join
 root: ~/.cursor/plan-mode
 sentinel: PLAN_EXECUTE
 drop: PLAN_ANALYZE,PLAN_CLARIFY
-load: 05-EXECUTE.md
+load: -
 need: 04-PREPARE.md
 mark: PLAN_PREPARE
 next:
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. This mode's file is `$DIR/05-EXECUTE.md`.
+`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
 
 While `PLAN_EXECUTE` exists, one message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
 

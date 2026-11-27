@@ -14,14 +14,14 @@ verb: new | load
 root: ~/.cursor/plan-mode
 sentinel: PLAN_ANALYZE
 drop: PLAN_CLARIFY,PLAN_HANDOFF,PLAN_PREPARE,PLAN_EXECUTE
-load: 01-ANALYZE.md
+load: -
 need: -
 mark: -
 next: /plan-clarify next
 sect: heading
 ```
 
-`new` and `load` are accepted. This mode's file is `$DIR/01-ANALYZE.md`.
+`new` and `load` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/01-ANALYZE.md`.
 
 While `PLAN_ANALYZE` exists, create that file on the first substantive query and edit it after that. Each heading is one finding that could change the documentation quality or direction. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation.
 

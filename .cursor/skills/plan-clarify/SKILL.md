@@ -14,14 +14,14 @@ verb: load | next | join
 root: ~/.cursor/plan-mode
 sentinel: PLAN_CLARIFY
 drop: PLAN_ANALYZE,PLAN_HANDOFF,PLAN_PREPARE,PLAN_EXECUTE
-load: 02-CLARIFY.md
+load: -
 need: 01-ANALYZE.md
 mark: PLAN_ANALYZE
 next: /plan-handoff next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. This mode's file is `$DIR/02-CLARIFY.md`.
+`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/02-CLARIFY.md`.
 
 While `PLAN_CLARIFY` exists, a turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 

@@ -14,14 +14,14 @@ verb: load | next | join
 root: ~/.cursor/dynamic-mode
 sentinel: PREPARE
 drop: ANALYZE,CLARIFY,EXECUTE
-load: 04-PREPARE.md
+load: -
 need: 03-HANDOFF.md
 mark: HANDOFF
 next: /code-execute next
 sect: heading
 ```
 
-`load`, `next`, and `join` are accepted. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
+`load`, `next`, and `join` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
 
 Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
