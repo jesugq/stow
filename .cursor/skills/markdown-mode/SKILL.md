@@ -50,7 +50,7 @@ The live clock is UTC. The parentheses hold the offset in hours, west when negat
 
 The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentinel whose size is not 0 prints `refused` and writes no markdown.
 
-One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, and prints the clock row.
+One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, prepends the clock to `TIMESTAMPS`, and prints the rows.
 
 ```
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <drop>
@@ -61,17 +61,18 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `drop
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the folder name, line 3 the clock, a bar, and the prompt ordinal (`Nov 26, 07:02 PM | 08th`). `$DIR` is `<root>/<line 2>`.
+- `ok` — line 2 is the folder name, line 3 the clock (`Nov 26, 07:02 PM`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first.
 
 `new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[call]` is line 3. The clock is the current prompt. The ordinal counts user messages in this conversation, including the one being answered, on two digits (`08th`). A bar separates them. Print line 3. Do not compute a second clock.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock. Do not write `TIMESTAMPS` again.
 
-The user-facing message is only the ack. Print `[call]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
+The user-facing message is only the ack. Print `[user]`, `[dutc]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
 
 Example, as plain lines:
 
-[call] Nov 26, 07:02 PM | 08th
+[user] Prompt #8
+[dutc] Nov 26, 07:02 PM
 [make] created heading 01
 [edit] updated headings 02, 03
 [next] /code-clarify next

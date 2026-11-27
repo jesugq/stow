@@ -60,13 +60,6 @@ def counts():
     current = stamps[-1] if stamps else None
     return current, len(stamps)
 
-def ordinal(n):
-    if 10 <= n % 100 <= 20:
-        suffix = "th"
-    else:
-        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
-    return f"{n:02d}{suffix}"
-
 def clock(ms):
     dt = datetime.fromtimestamp(ms / 1000, timezone.utc)
     return f"{dt.strftime('%b')} {dt.day}, {dt.strftime('%I:%M %p')}"
@@ -115,6 +108,11 @@ def folder_named(s):
         return None
     return d
 
+def prepend_call(d, live):
+    path = d / "TIMESTAMPS"
+    prev = path.read_text(errors="replace") if path.is_file() else ""
+    path.write_text(live + "\n" + prev)
+
 def finish(d):
     if not cid:
         print("refused")
@@ -136,9 +134,11 @@ def finish(d):
     current_ms, users = counts()
     shown = users if users else 1
     live = clock(current_ms) if current_ms is not None else "none"
+    prepend_call(d, live)
     print("ok")
     print(d.name)
-    print(f"{live} | {ordinal(shown)}")
+    print(live)
+    print(f"Prompt #{shown}")
 
 if not cid or not sentinel:
     print("refused")
