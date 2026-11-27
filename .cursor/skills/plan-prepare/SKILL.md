@@ -22,7 +22,7 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`.
 
-Do not write the final document in this mode. While `PLAN_PREPARE` exists, a turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
+Do not write the final document in this mode. A turn that opens, updates, or resolves a writing choice edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves.
 
 Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md`. The handoff is what must become true and why. The prepare file is the writing plan board.
 

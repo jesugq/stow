@@ -22,7 +22,7 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/02-CLARIFY.md`.
 
-While `PLAN_CLARIFY` exists, a turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
+A turn that opens, updates, or resolves an ambiguity edits that file. Create it only when it is absent. One ambiguity per heading. The heading is `# NN <5-10 word ambiguity>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
 Read `$DIR/01-ANALYZE.md` and `$DIR/02-CLARIFY.md`. The analyze file is the investigation. The clarify file is the board. Absent means no pins. A new pin is a choice the analyze file leaves open that would change the final document.
 

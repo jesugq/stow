@@ -22,7 +22,7 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/04-PREPARE.md`. Keep `HANDOFF`.
 
-Do not implement. While `PREPARE` exists, a turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
+Do not implement. A turn that opens, updates, or resolves a way to build edits that file. Create it only when it is absent. One choice per heading. The heading is `# NN <5-10 word choice>`. Change only the pins this turn opens, updates, or resolves. No board change: no ack and no file. A short ack that settles a pin is an edit.
 
 Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md`. The handoff is what must become true and why. A clarify pin whose first line is `Resolved` is closed. Do not reopen it. The prepare file is the board. Absent means no pins. Look at the codebase only to see which existing way would satisfy the handoff.
 

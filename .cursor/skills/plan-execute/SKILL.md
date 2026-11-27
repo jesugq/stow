@@ -22,7 +22,7 @@ sect: heading
 
 `load` and `next` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/05-EXECUTE.md`.
 
-While `PLAN_EXECUTE` exists, one message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
+One message that asks for documentation work does the whole pass. Read `$DIR/03-HANDOFF.md`, `$DIR/02-CLARIFY.md`, and `$DIR/04-PREPARE.md` once. Resolved clarify pins override conflicting handoff or prepare text.
 
 Do not write partial final output in multiple passes unless the user asked for a revision. Create `05-EXECUTE.md` when it is absent. Write it once per pass at the end.
 

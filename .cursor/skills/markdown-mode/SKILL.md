@@ -36,7 +36,7 @@ sect: file
 
 `verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` is the zero-byte file that marks this mode on. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` names a file the shell does not create. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
 
 `$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id. Do not print a resolved `/Users/...` path. Copy `root` as the caller wrote it, tilde included.
 
@@ -56,9 +56,9 @@ The prompt timestamp is local. The folder date is that local calendar date, befo
 
 The live clock is UTC. The parentheses hold the offset in hours, west when negative, east when positive. Subtract the offset from the local clock: offset `-6` adds 6 hours, offset `+2` subtracts 2 hours. Roll the day when the clock crosses midnight. Format: abbreviated month, day with no leading zero, comma, zero-padded 12-hour clock, AM/PM. No year. No zone. A local stamp of Oct 13, 12:47 PM with offset `-6` is `Oct 13, 06:47 PM`. The script prints that clock for the current user message.
 
-The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentinel whose size is not 0 prints `refused` and writes no markdown.
+The shell does not create a sentinel. A sentinel file whose size is not 0 prints `refused` and writes no markdown.
 
-The mode shell is the last tool. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, stops the timer, prepends the clock and the span to `TIMESTAMPS`, and prints the rows.
+The mode shell is the last tool. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, stops the timer, prepends the clock and the span to `TIMESTAMPS`, and prints the rows.
 
 ```
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <drop>
@@ -71,7 +71,7 @@ The first stdout line decides the reply.
 - `refused` — print `refused` and stop.
 - `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell does not create `sentinel`. It deletes each `drop` name. It does not truncate a sentinel that exists. It does not delete markdown.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The span is the timer. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock or a second span. Do not write `TIMESTAMPS` again.
 
@@ -97,9 +97,9 @@ Stop.
 
 Run `begin` before any research tool. The mode shell from Common is the last tool invocation before the speaking message. Research tools run after `begin` and before that shell. Do not run a tool after that shell returns.
 
-The shell creates the sentinel. The speaking message writes the caller's file and prints the ack. Do not end after the sentinel when the message asked for work and the file was not written. Do not take another turn to check the write, lint, or restate the answer.
+The speaking message writes the caller's file and prints the ack. Do not end before that file when the message asked for work and the file was not written. Do not take another turn to check the write, lint, or restate the answer.
 
-While the sentinel exists and its size is 0, each message that asks for an answer writes that file. Once `$DIR` is set, read the markdown files there once and continue from them. Do not read another conversation's transcript. Read each file in `$DIR` at most once per user message. Do not Read a skill file to resume a mode.
+Each message that asks for an answer writes that file. Once `$DIR` is set, read the markdown files there once and continue from them. Do not read another conversation's transcript. Read each file in `$DIR` at most once per user message. Do not Read a skill file to resume a mode.
 
 A tool result already in the conversation is the file contents. Do not Read that path again. Re-read only when this conversation has edited that file since the last read and a later step needs the new contents, or the user says the file changed outside this conversation. After a successful Write, do not Read the file to confirm it. Do not Read the transcript jsonl. To find a symbol, Grep first and Read only that line range. Do not read a large file to locate a few lines.
 

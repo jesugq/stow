@@ -22,7 +22,7 @@ sect: heading
 
 `new` and `load` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/01-ANALYZE.md`.
 
-While `PLAN_ANALYZE` exists, create that file on the first substantive query and edit it after that. Each heading is one finding that could change the documentation quality or direction. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation.
+Create that file on the first substantive query and edit it after that. Each heading is one finding that could change the documentation quality or direction. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation.
 
 Do not write solutions, implementation steps, or final document prose in this mode. Write findings, evidence, and unknowns only. For each non-trivial claim, include a source when available. If no source is available, mark it as `Unverified`.
 

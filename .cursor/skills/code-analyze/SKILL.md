@@ -22,4 +22,4 @@ sect: heading
 
 `new` and `load` are accepted. `load` accepts the folder with any sentinel. This mode's file is `$DIR/01-ANALYZE.md`.
 
-While `ANALYZE` exists, create that file on the first substantive query and edit it after that. Each heading is one finding clarify would decide differently without. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.
+Create that file on the first substantive query and edit it after that. Each heading is one finding clarify would decide differently without. The heading is `# NN <5-10 word title>`. Add or replace only that heading. Do not rewrite an unchanged heading, and do not write the rest of the investigation. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.

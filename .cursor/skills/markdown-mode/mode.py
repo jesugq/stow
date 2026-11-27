@@ -182,9 +182,7 @@ def finish(d):
             if f.is_file():
                 f.unlink()
     b = d / sentinel
-    if not b.exists():
-        b.write_bytes(b"")
-    if (not b.is_file()) or b.stat().st_size != 0:
+    if b.exists() and ((not b.is_file()) or b.stat().st_size != 0):
         refuse()
         return
     current_ms, users = counts()
