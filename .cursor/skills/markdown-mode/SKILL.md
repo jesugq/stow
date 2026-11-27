@@ -42,7 +42,7 @@ sect: file
 
 `new` requires the name. Pass that name as `dir`. `load` requires the folder name, one token. Pass that folder name as `dir`. An absolute path, a missing token, or a second token prints `refused`. `new` and `load` do not take a prompt. The message is only the command and that argument. Follow Common and Only the command, then stop.
 
-`next` requires the prompt. The prompt is every word after the verb. No prompt prints `refused` and does not run the shell. The prompt is the work. Follow Common and Work. `next` takes no folder. A folder written beside `next` does not count. `next` is allowed only when an earlier message in this conversation already set `$DIR` with `new` or `load`. The first user message cannot be `next`. Do not use a `[path]` line to discover a folder. No known `$DIR`: pass `-` as `dir`. Do not read the transcript to learn which verb ran.
+`next` requires the prompt. The prompt is every word after the verb. No prompt prints `refused` and does not run the shell. The prompt is the work. Follow Common and Work. `next` takes no folder. A folder written beside `next` does not count. `next` is allowed only when an earlier message in this conversation already set `$DIR` with `new` or `load`. The first user message cannot be `next`. Do not use a `[name]` line to discover a folder. No known `$DIR`: pass `-` as `dir`. Do not read the transcript to learn which verb ran.
 
 When the message is `new` or `load` plus its argument, follow Common and Only the command, then stop. Do not read Work. Do not write markdown for that message, including when the caller's skill describes a file. A `next` with a prompt follows Common and Work. The prompt is the message that asks for an answer.
 
@@ -69,23 +69,22 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `drop
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
+- `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt 8 | Timestamps 12`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
 
 `new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message. `load` creates no folder. `load` requires a file only when the parameter is not `-`. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell does not create `sentinel`. It deletes each `drop` name. It does not truncate a sentinel that exists. It does not delete markdown.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The span is the timer. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock or a second span. Do not write `TIMESTAMPS` again.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[time]` is line 3. `[name]` is line 2. The clock is the current prompt. The span is the timer. Line 4 counts user messages in this conversation and lines in `TIMESTAMPS`. Print line 4, then line 3. Do not compute a second clock, a second span, or a second count. Do not write `TIMESTAMPS` again.
 
-The user-facing message is only the ack. Print `[user]`, `[dutc]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
+The user-facing message is only the ack. Print `[user]`, `[time]`, `[make]`, `[edit]`, `[next]`, then `[name]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[name]` is the folder name from line 2. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is the noun, then the numbers. `[edit]` is the noun, then the numbers. `sect: file` uses `Files`. `sect: heading` uses `Headings`. The noun stays plural for one number. A heading that only shifted number is not listed.
 
 Example, as plain lines:
 
-[user] Prompt #8
-[dutc] Nov 26, 07:02 PM | 4m 12s
-[make] created heading 01
-[edit] updated headings 02, 03
+[user] Prompt 8 | Timestamps 12
+[time] Nov 26, 07:02 PM | 4m 12s
+[make] Headings 01
+[edit] Headings 02, 03
 [next] /code-clarify next
-[load] /code-analyze load 2026-11-23_Passkey_error
-[path] cd /Users/jesus.gonzalez/Development/areas/codes/2026-11-23_Passkey_error && nvim
+[name] 2026-11-23_Passkey_error
 
 ## Only the command
 

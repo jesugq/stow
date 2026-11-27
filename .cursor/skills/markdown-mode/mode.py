@@ -167,7 +167,9 @@ def folder_named(s):
 def prepend_call(d, live):
     path = d / "TIMESTAMPS"
     prev = path.read_text(errors="replace") if path.is_file() else ""
-    path.write_text(live + "\n" + prev)
+    text = live + "\n" + prev
+    path.write_text(text)
+    return sum(1 for line in text.splitlines() if line.strip())
 
 def finish(d):
     if not cid:
@@ -189,11 +191,11 @@ def finish(d):
     shown = users if users else 1
     live = clock(current_ms) if current_ms is not None else "none"
     row = f"{live} | {take_span()}"
-    prepend_call(d, row)
+    stamps = prepend_call(d, row)
     print("ok")
     print(d.name)
     print(row)
-    print(f"Prompt #{shown}")
+    print(f"Prompt {shown} | Timestamps {stamps}")
 
 if not cid or not sentinel:
     refuse()
