@@ -15,11 +15,13 @@ sentinel: PERFORM
 drop: -
 load: -
 need: -
-next:
+prev: None
+curr: Perform
+next: None
 sect: heading
 ```
 
-`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-PERFORM.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
+`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-PERFORM.md`. `00` is the file number because no later mode follows this one. `prev` is `None`. `curr` is `Perform`. `next` is `None`.
 
 Create that file on the first substantive query and edit it after that. Read `$DIR/00-PERFORM.md` once when it exists. That file is the conversation. A later `load` continues from it.
 

@@ -15,7 +15,9 @@ sentinel: PLAN_DISCOVER
 drop: PLAN_PRIORITIZE,PLAN_DEFINE,PLAN_REFINE,PLAN_EXECUTE
 load: -
 need: -
-next: /plan-prioritize next
+prev: None
+curr: Plan discover
+next: Plan prioritize
 sect: heading
 ```
 

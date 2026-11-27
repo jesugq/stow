@@ -30,13 +30,15 @@ sentinel: MARKDOWN
 drop: -
 load: -
 need: -
-next:
+prev: None
+curr: Markdown
+next: None
 sect: file
 ```
 
 `verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` names a file the shell does not create. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is `-`, or a file name the folder must contain. `-` requires no markdown file. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` names a file the shell does not create. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is `-`, or a file name the folder must contain. `-` requires no markdown file. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. `prev` is the previous skill, or `None`. `curr` is the skill in use. `next` is the following skill, or `None`. `[sdlc]` joins `prev`, `curr`, and `next` with ` -> `. Always print `[sdlc]`. `sect` is `file` or `heading`.
 
 `$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id. Do not print a resolved `/Users/...` path. Copy `root` as the caller wrote it, tilde included.
 
@@ -75,7 +77,7 @@ The first stdout line decides the reply.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[time]` is line 3. `[name]` is line 2. The clock is the current prompt. The span is the timer. Line 4 counts user messages in this conversation and lines in `TIMESTAMPS`. Print line 4, then line 3. Do not compute a second clock, a second span, or a second count. Do not write `TIMESTAMPS` again.
 
-The user-facing message is only the ack. Print `[user]`, `[time]`, `[make]`, `[edit]`, `[next]`, then `[name]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[name]` is the folder name from line 2. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is the noun, then the numbers. `[edit]` is the noun, then the numbers. `sect: file` uses `Files`. `sect: heading` uses `Headings`. The noun stays plural for one number. A heading that only shifted number is not listed.
+The user-facing message is only the ack. Print `[user]`, `[time]`, `[make]`, `[edit]`, `[sdlc]`, then `[name]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[name]` is the folder name from line 2. `[sdlc]` is `prev -> curr -> next`. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is the noun, then the numbers. `[edit]` is the noun, then the numbers. `sect: file` uses `Files`. `sect: heading` uses `Headings`. The noun stays plural for one number. A heading that only shifted number is not listed.
 
 Example, as plain lines:
 
@@ -83,7 +85,7 @@ Example, as plain lines:
 [time] Nov 26, 07:02 PM | 4m 12s
 [make] Headings 01
 [edit] Headings 02, 03
-[next] /code-prioritize next
+[sdlc] None -> Perform -> None
 [name] 2026-11-23_Passkey_error
 
 ## Only the command
