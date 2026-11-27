@@ -6,8 +6,16 @@ disable-model-invocation: true
 
 # Markdown mode
 
-`CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once. Do not Read it again.
+`CURSOR_CONVERSATION_ID` and `AGENT_TRANSCRIPTS` are exported. This skill is the command. Call the Skill tool with `markdown-mode` for the folder, the ack, and the markdown file. A caller passes parameters and does not restate this file. Read this file once, after `begin`. Do not Read it before `begin`. Do not Read it again.
 Hard rule: Before any response in this mode, run the `markdown-mode` workflow. Then output only the ack or `refused`.
+
+The first tool is the timer. Run it alone, before any Read, search, or edit.
+
+```
+python3 ~/.cursor/skills/markdown-mode/mode.py begin
+```
+
+`begin` prints `timer`. It records the start for this conversation. A later `begin` keeps that start. An interrupt keeps that start. The mode shell stops the timer. Run `cancel` with that script when you print `refused` and you do not run the mode shell. `cancel` prints `timer` and drops the open timer.
 
 `/markdown-mode new`, `/markdown-mode load`, and `/markdown-mode next` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name and requires the `load` file there. `next` takes a prompt and stays on the known `$DIR`. A verb with no argument prints `refused` and stops.
 
@@ -50,7 +58,7 @@ The live clock is UTC. The parentheses hold the offset in hours, west when negat
 
 The mode is on exactly when `$DIR/<sentinel>` exists and its size is 0. A sentinel whose size is not 0 prints `refused` and writes no markdown.
 
-One shell. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, prepends the clock to `TIMESTAMPS`, and prints the rows.
+The mode shell is the last tool. Do not list the environment. Do not Read `~/.cursor/skills/markdown-mode/mode.py`. Do not Read the transcript jsonl. The script checks the folder, writes the sentinel, stops the timer, prepends the clock and the span to `TIMESTAMPS`, and prints the rows.
 
 ```
 python3 ~/.cursor/skills/markdown-mode/mode.py <kind> <root> <date> <dir> <sentinel> <load> <need> <drop>
@@ -61,18 +69,18 @@ Args, in order: `kind`, `root`, `date`, `dir`, `sentinel`, `load`, `need`, `drop
 The first stdout line decides the reply.
 
 - `refused` — print `refused` and stop.
-- `ok` — line 2 is the folder name, line 3 the clock (`Nov 26, 07:02 PM`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first.
+- `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
 
 `new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell creates `sentinel` empty only when it is absent, deletes each `drop` name, and does not truncate a sentinel that exists. It does not delete markdown.
 
-The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock. Do not write `TIMESTAMPS` again.
+The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The span is the timer. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock or a second span. Do not write `TIMESTAMPS` again.
 
 The user-facing message is only the ack. Print `[user]`, `[dutc]`, `[make]`, `[edit]`, `[next]`, `[load]`, then `[path]` as plain lines. Do not wrap the ack in a fence. A fence makes the client add line numbers. `[path]` is `cd`, the caller's `root`, `/`, the folder name from line 2, `&& nvim`. `[load]` is `/<mode> load` plus that folder name. `[next]` is the `next` line. Omit `[next]` when that line is empty. Omit `[make]` when this turn creates nothing. Omit `[edit]` when this turn updates nothing. `[make]` is `created`, then the noun, then the numbers. `[edit]` is `updated`, then the noun, then the numbers. `sect: file` uses `file` and `files`. `sect: heading` uses `heading` and `headings`. One number uses the singular. More than one uses the plural. A heading that only shifted number is not listed.
 
 Example, as plain lines:
 
 [user] Prompt #8
-[dutc] Nov 26, 07:02 PM
+[dutc] Nov 26, 07:02 PM | 4m 12s
 [make] created heading 01
 [edit] updated headings 02, 03
 [next] /code-clarify next
@@ -81,13 +89,13 @@ Example, as plain lines:
 
 ## Only the command
 
-Run the shell once. The speaking message prints the ack or `refused`. It writes no markdown. It deletes nothing.
+Run `begin` first. Run the mode shell once. The speaking message prints the ack or `refused`. It writes no markdown. It deletes nothing.
 
 Stop.
 
 ## Work
 
-The shell from Common is the last tool invocation before the speaking message. Research tools run in that same invocation or earlier. Do not run a tool after that shell returns.
+Run `begin` before any research tool. The mode shell from Common is the last tool invocation before the speaking message. Research tools run after `begin` and before that shell. Do not run a tool after that shell returns.
 
 The shell creates the sentinel. The speaking message writes the caller's file and prints the ack. Do not end after the sentinel when the message asked for work and the file was not written. Do not take another turn to check the write, lint, or restate the answer.
 

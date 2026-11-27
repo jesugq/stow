@@ -1,17 +1,73 @@
 #!/usr/bin/env python3
-import json, os, re, sys
+import json, os, re, sys, time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+cid = os.environ.get("CURSOR_CONVERSATION_ID") or ""
+trans = os.environ.get("AGENT_TRANSCRIPTS") or ""
+
+def timer_path():
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", cid or ""):
+        return None
+    d = Path.home() / ".local/state/markdown-mode/timers"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / cid
+
+def begin_timer():
+    p = timer_path()
+    if p is not None and not p.is_file():
+        p.write_text(f"{time.time():.3f}\n")
+    print("timer")
+
+def drop_timer():
+    p = timer_path()
+    if p is not None and p.is_file():
+        p.unlink()
+
+def cancel_timer():
+    drop_timer()
+    print("timer")
+
+def refuse():
+    drop_timer()
+    print("refused")
+
+def format_span(secs):
+    h, rem = divmod(secs, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{h}h {m:02d}m {s:02d}s"
+    if m:
+        return f"{m}m {s:02d}s"
+    return f"{s}s"
+
+def take_span():
+    p = timer_path()
+    if p is None or not p.is_file():
+        return "n/a"
+    raw = p.read_text(errors="replace").strip()
+    p.unlink()
+    try:
+        start = float(raw)
+    except ValueError:
+        return "n/a"
+    secs = max(0, int(time.time() - start))
+    return format_span(secs)
+
+if len(sys.argv) > 1 and sys.argv[1] == "begin":
+    begin_timer()
+    raise SystemExit
+if len(sys.argv) > 1 and sys.argv[1] == "cancel":
+    cancel_timer()
+    raise SystemExit
 
 try:
     kind, root_s, date, dir_s, sentinel, load, need, drop_s = sys.argv[1:9]
 except ValueError:
-    print("refused")
+    refuse()
     raise SystemExit
 
 root = Path(root_s).expanduser()
-cid = os.environ.get("CURSOR_CONVERSATION_ID") or ""
-trans = os.environ.get("AGENT_TRANSCRIPTS") or ""
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 SLUG = re.compile(r"(\d{4}-\d{2}-\d{2})_([A-Za-z0-9][A-Za-z0-9_-]*)")
 
@@ -115,7 +171,7 @@ def prepend_call(d, live):
 
 def finish(d):
     if not cid:
-        print("refused")
+        refuse()
         return
     d.mkdir(parents=True, exist_ok=True)
     if drop_s != "-":
@@ -129,34 +185,35 @@ def finish(d):
     if not b.exists():
         b.write_bytes(b"")
     if (not b.is_file()) or b.stat().st_size != 0:
-        print("refused")
+        refuse()
         return
     current_ms, users = counts()
     shown = users if users else 1
     live = clock(current_ms) if current_ms is not None else "none"
-    prepend_call(d, live)
+    row = f"{live} | {take_span()}"
+    prepend_call(d, row)
     print("ok")
     print(d.name)
-    print(live)
+    print(row)
     print(f"Prompt #{shown}")
 
 if not cid or not sentinel:
-    print("refused")
+    refuse()
 elif kind == "new":
     name = safe_name(dir_s)
     stamp = calendar_date(date)
     if not name or not stamp:
-        print("refused")
+        refuse()
     else:
         dest = root / f"{stamp}_{name}"
         if dest.exists():
-            print("refused")
+            refuse()
         else:
             finish(dest)
 elif kind == "count":
     d = folder_named(dir_s)
     if d is None:
-        print("refused")
+        refuse()
     else:
         finish(d)
 elif kind == "load":
@@ -164,12 +221,12 @@ elif kind == "load":
     if d is not None and named(d, load):
         finish(d)
     else:
-        print("refused")
+        refuse()
 elif kind == "next":
     d = folder_named(dir_s)
     if d is not None and named(d, need):
         finish(d)
     else:
-        print("refused")
+        refuse()
 else:
-    print("refused")
+    refuse()
