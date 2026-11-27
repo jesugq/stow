@@ -13,13 +13,13 @@ verb: new | load | next
 root: ~/.cursor/dialogue-mode
 sentinel: DIALOGUE
 drop: -
-load: 00-DIALOGUE.md
+load: -
 need: -
 next:
 sect: heading
 ```
 
-`new`, `load`, and `next` are accepted. This mode's file is `$DIR/00-DIALOGUE.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
+`new`, `load`, and `next` are accepted. `load` accepts the folder with no markdown file. This mode's file is `$DIR/00-DIALOGUE.md`. `00` is the file number because no later mode follows this one. The `next` line stays empty.
 
 Create that file on the first substantive query and edit it after that. Read `$DIR/00-DIALOGUE.md` once when it exists. That file is the conversation. A later `load` continues from it.
 
@@ -27,4 +27,4 @@ One topic per heading. The heading is `# NN <5-10 word title>`. Number headings 
 
 The body is the topic as it stands. Include what was asked, what was decided, and what stays open. Those three are the context a later `load` needs. The writing style comes from `markdown-mode`. This skill does not restate it.
 
-`load` requires `00-DIALOGUE.md` in the named folder. A folder that has only `NN.md` does not match. "Yes", "Done", and tool-only turns that are not this mode: no ack and no file.
+"Yes", "Done", and tool-only turns that are not this mode: no ack and no file.

@@ -17,7 +17,7 @@ python3 ~/.cursor/skills/markdown-mode/mode.py begin
 
 `begin` prints `timer`. It records the start for this conversation. A later `begin` keeps that start. An interrupt keeps that start. The mode shell stops the timer. Run `cancel` with that script when you print `refused` and you do not run the mode shell. `cancel` prints `timer` and drops the open timer.
 
-`/markdown-mode new`, `/markdown-mode load`, and `/markdown-mode next` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name and requires the `load` file there. `next` takes a prompt and stays on the known `$DIR`. A verb with no argument prints `refused` and stops.
+`/markdown-mode new`, `/markdown-mode load`, and `/markdown-mode next` run it with the direct parameters. `new` takes a name and creates a folder. `load` takes a folder name. A `load` value of `-` requires no markdown file. `next` takes a prompt and stays on the known `$DIR`. A verb with no argument prints `refused` and stops.
 
 ## Parameters
 
@@ -28,7 +28,7 @@ verb: new | load | next
 root: ~/.cursor/markdown-mode
 sentinel: MARKDOWN
 drop: -
-load: NN
+load: -
 need: -
 next:
 sect: file
@@ -36,7 +36,7 @@ sect: file
 
 `verb` is the word immediately after the mode command. `new`, `load`, and `next` are accepted. Anything else, including no word, prints `refused` and stops. That reply has no folder, no file, and no ack. A caller may accept a subset. A verb outside that subset is `refused`.
 
-`root` is the parent of the conversation folders. `sentinel` names a file the shell does not create. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is the file the `load` folder must contain. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
+`root` is the parent of the conversation folders. `sentinel` names a file the shell does not create. `drop` is the sentinels to delete when this mode turns on, comma-separated, or `-`. `load` is `-`, or a file name the folder must contain. `-` requires no markdown file. `NN` means a file named `[0-9][0-9].md`. `need` is a markdown file `next` requires, or `-`. The `next` line is the `[next]` ack. Empty omits `[next]`. `sect` is `file` or `heading`.
 
 `$DIR` is `<root>/<folder>`. The folder name is `YYYY-MM-DD_Name`. One example is `2026-11-26_Passkey_error`. The date is the local calendar date. The name is the argument to `new`. Turn each space in that name into `_` before the shell, so `dir` is one token and the path needs no quotes. After that, the name matches `[A-Za-z0-9][A-Za-z0-9_-]*`. A slash, a quote, or any other character outside that set prints `refused`. The folder name does not contain the conversation id. Do not print a resolved `/Users/...` path. Copy `root` as the caller wrote it, tilde included.
 
@@ -71,7 +71,7 @@ The first stdout line decides the reply.
 - `refused` — print `refused` and stop.
 - `ok` — line 2 is the folder name, line 3 the clock and the span (`Nov 26, 07:02 PM | 4m 12s`), line 4 the prompt label (`Prompt #8`). `$DIR` is `<root>/<line 2>`. The script prepends line 3 to `$DIR/TIMESTAMPS` before it prints. One clock per line. Newest first. The span is the open timer. `n/a` means `begin` did not run.
 
-`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message, requires the `load` file in it, and creates no folder. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell does not create `sentinel`. It deletes each `drop` name. It does not truncate a sentinel that exists. It does not delete markdown.
+`new` creates `$DIR` as `<root>/<local YYYY-MM-DD>_<name>` and refuses when that folder exists. It does not use the conversation id. `load` uses the folder name from the message. `load` creates no folder. `load` requires a file only when the parameter is not `-`. `next` uses the known folder name and requires `need` when `need` is not `-`. The shell does not create `sentinel`. It deletes each `drop` name. It does not truncate a sentinel that exists. It does not delete markdown.
 
 The speaking message is the next message after this shell. It does not run the shell again and it does not open the jsonl. `[user]` is line 4. `[dutc]` is line 3. The clock is the current prompt. The span is the timer. The label counts user messages in this conversation, including the one being answered (`Prompt #8`). Print line 4, then line 3. Do not compute a second clock or a second span. Do not write `TIMESTAMPS` again.
 
